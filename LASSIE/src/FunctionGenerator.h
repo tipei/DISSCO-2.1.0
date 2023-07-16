@@ -172,11 +172,12 @@ public:
     ~REVPartialAlignment();
     void setNumber(int _number);
     void entryEditSwitch(int _flag);// 0 = disable, 1 = enable
-    std::string getText();
-    void setText(std::string _text);
+    std::string getText(std::string _propname, std::string _id);
+    void setText(std::string _text, std::string _id);
     void insertPartialButtonClicked();
     void setLabel(string _label);
     void appendNewNode(REVPartialAlignment* _newNode);
+    void refreshPartialNumbersAndLayout();
     REVPartialAlignment* next;
     REVPartialAlignment* prev;
   private:
@@ -185,8 +186,18 @@ public:
 
     void textChanged();
 
+    // ZIYUAN CHEN, July 2023
     void removePartialButtonClicked();
-    void funButtonClicked();
+    void SimpleEntryFunButtonClicked();
+    void MediumReverbPercentFunButtonClicked();
+    void MediumHilowSpreadFunButtonClicked();
+    void MediumGainAllPassFunButtonClicked();
+    void MediumDelayFunButtonClicked();
+    void AdvancedReverbPercentFunButtonClicked();
+    void AdvancedCombGainListFunButtonClicked();
+    void AdvancedLPGainListFunButtonClicked();
+    void AdvancedGainAllPassFunButtonClicked();
+    void AdvancedDelayFunButtonClicked();
 
 
   };
@@ -238,11 +249,15 @@ public:
   void SPAApplyByRadioButtonClicked();
   void SPATextChanged();
 
+  // ZIYUAN CHEN, July 2023
   int REVNumOfPartials;
-  int REVApplyFlag;
+  int REVApplyFlag; // 0 = sound, 1 = partial
+  int REVMethodFlag; // 0 = simple, 1 = medium, 2 = advanced
+  bool REVForcedRefresh; // configured by function_list_combo_changed(), used by REVRemovePartial()
   REVPartialAlignment* REVPartialAlignments;
   void REVRemovePartial (REVPartialAlignment* _remove);
   REVPartialAlignment* REVInsertPartial ();
+  REVPartialAlignment* REVInsertPartial (REVPartialAlignment* _insertAfter);
   void REVApplyByRadioButtonClicked();
   void REVTextChanged();
   
@@ -540,26 +555,6 @@ private:
   void makeFilterDBGainFunButtonClicked();
   void makeFilterBandWidthFunButtonClicked();
   void makeFilterFrequencyFunButtonClicked();
-
-  //REV_Simple
-  void REV_SimpleEntryTextChanged();
-  void REV_SimpleEntryFunButtonClicked();
-
-
-  //REV_Medium
-  void REV_MediumReverbPercentFunButtonClicked();
-  void REV_MediumHilowSpreadFunButtonClicked();
-  void REV_MediumGainAllPassFunButtonClicked();
-  void REV_MediumDelayFunButtonClicked();
-  void REV_MediumTextChanged();
-
-  //REV_Advanced
-  void REV_AdvancedReverbPercentFunButtonClicked();
-  void REV_AdvancedCombGainListFunButtonClicked();
-  void REV_AdvancedLPGainListFunButtonClicked();
-  void REV_AdvancedGainAllPassFunButtonClicked();
-  void REV_AdvancedDelayFunButtonClicked();
-  void REV_AdvancedTextChanged();
 
   //ReadSIVFile
   void readSIVFileTextChanged();

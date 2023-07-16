@@ -289,6 +289,41 @@ class Bottom : public Event {
      **/
     MultiPan computeSpatializationPolar(string thetaEnvStr, string radiusEnvStr);
 
+    /** ZIYUAN CHEN, July 2023
+     *  Computes a Reverb for applying reverberationSimple to a sound.
+     *  \param sizeElement pointer to a DOMElement containing "Room Size" (float)
+     *  \param iPartial index of the partial currently being processed
+     *  \return pointer to a parameterized Reverb object
+     **/
+    Reverb* computeReverberationSimple(DOMElement* sizeElement, int iPartial);
+
+    /** ZIYUAN CHEN, July 2023
+     *  Computes a Reverb for applying ReverberationMedium to a sound.
+     *  \param percentElement pointer to a DOMElement containing "Reverb Percentage" (envelope)
+     *  \param spreadElement pointer to a DOMElement containing "Hilow Spread" (float)
+     *  \param allPassElement pointer to a DOMElement containing "Gain All Pass" (float)
+     *  \param delayElement pointer to a DOMElement containing "Delay" (float)
+     *  \param iPartial index of the partial currently being processed
+     *  \return pointer to a parameterized Reverb object
+     **/
+    Reverb* computeReverberationMedium(DOMElement* percentElement,
+      DOMElement* spreadElement, DOMElement* allPassElement,
+      DOMElement* delayElement, int iPartial);
+
+    /** ZIYUAN CHEN, July 2023
+     *  Computes a Reverb for applying ReverberationAdvanced to a sound.
+     *  \param percentElement pointer to a DOMElement containing "Reverb Percentage" (envelope)
+     *  \param combGainListElement pointer to a DOMElement containing "Comb Gain List" (6 floats)
+     *  \param lpGainListElement pointer to a DOMElement containing "LP Gain List" (6 floats)
+     *  \param allPassElement pointer to a DOMElement containing "Gain All Pass" (float)
+     *  \param delayElement pointer to a DOMElement containing "Delay" (float)
+     *  \param iPartial index of the partial currently being processed
+     *  \return pointer to a parameterized Reverb object
+     **/
+    Reverb* computeReverberationAdvanced(DOMElement* percentElement,
+      DOMElement* combGainListElement, DOMElement* lpGainListElement,
+      DOMElement* allPassElement, DOMElement* delayElement, int iPartial);
+
 //----------------------------------------------------------------------------//
 
     /**
@@ -350,14 +385,55 @@ class Bottom : public Event {
     /**
      *  Applies reverberation to a sound
      *  \param s a pointer to the sound being created
-     **/
-    void applyReverberation(Sound* s);
-
-    /** Experimental: apply reverb_simple for different partials
-     * \param s a pointer to the sound being created
-     * \param numPartials the number of partials contained in the sound
+     *  \param numPartials the number of partials contained in the sound
      **/
     void applyReverberation(Sound* s, int numPartials);
+
+    /**
+     *  Sets the reverberation of a sound according to a simple
+     *     "room size" parameter
+     *  \param s a pointer to the sound being created
+     *  \param paramsElement pointer to the <Sizes> element
+     *  \param applyHow string containing info if it applies to sound or
+     *     individual partials
+     *  \param numPartials the number of partials contained in the sound
+     **/
+    void reverberationSimple(Sound *s,
+                             DOMElement* paramsElement,
+                             string applyHow,
+                             int numPartials);
+
+    /**
+     *  Sets the reverberation of a sound according to an envelope,
+     *     "hi/low spread", "gain all pass", and "delay" parameters
+     *     ==== Applying by partial not implemented in LASSIE ====
+     * \param s a pointer to the sound being created
+     * \param paramsElement pointer to the <Percent> (envelope) element
+     * \param applyHow string containing info if it applies to sound or
+     *     individual partials
+     * \param numPartials the number of partials contained in the sound
+     **/
+    void reverberationMedium(Sound *s,
+                             DOMElement* paramsElement,
+                             string applyHow,
+                             int numPartials);
+
+    /**
+     * Sets the reverberation of a sound according to an envelope,
+     *     6 comb gain filters, 6 lp gain filters,
+     *     "gain all pass", and "delay" parameters
+     *     ==== Applying by partial not implemented in LASSIE ====
+     * \param s a pointer to the sound being created
+     * \param paramsElement pointer to the <Percent> (envelope) element
+     * \param applyHow string containing info if it applies to sound or
+     *     individual partials
+     * \param numPartials the number of partials contained in the sound
+     **/
+    void reverberationAdvanced(Sound *s,
+                               DOMElement* paramsElement,
+                               string applyHow,
+                               int numPartials);
+
     /**
     *  Use of modifiers: tremolo, vibrato, transients. Makes 3 lists/maps -
     *  one for modifiers with no dependencies, one for modifiers grouped

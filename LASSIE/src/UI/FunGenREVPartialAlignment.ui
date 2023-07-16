@@ -4,23 +4,213 @@
   <!-- interface-naming-policy project-wide -->
   <object class="GtkHBox" id="MainHBox">
     <property name="visible">True</property>
-    <property name="tooltip_text" translatable="yes">Envelope</property>
     <child>
-      <object class="GtkLabel" id="TitleLabel">
+      <object class="GtkVSeparator" id="vseparator1">
         <property name="visible">True</property>
-	<property name="label" translatable="yes">Partial 1</property>
       </object>
       <packing>
-        <property name="padding">4</property>
+        <property name="expand">False</property>
+        <property name="padding">3</property>
+        <property name="position">0</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkVBox" id="OuterVBox">
+        <property name="visible">True</property>
+        <child>
+          <object class="GtkLabel" id="TitleLabel">
+            <property name="visible">True</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="padding">5</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="InsertPartialButton">
+            <property name="label" translatable="yes">Insert a Partial After This One</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <property name="tooltip_text" translatable="yes">Only works when applying by partial</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="RemovePartialButton">
+            <property name="label" translatable="yes">Remove This Partial</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <property name="tooltip_text" translatable="yes">Only works when applying by partial</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkVBox" id="MainVBox">
+            <property name="visible">True</property>
+          </object>
+          <packing>
+            <property name="position">3</property>
+          </packing>
+        </child>
+      </object>
+      <packing>
+        <property name="position">1</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkVSeparator" id="vseparator2">
+        <property name="visible">True</property>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="padding">3</property>
+        <property name="position">2</property>
+      </packing>
+    </child>
+  </object>
+  <object class="GtkVBox" id="SimpleVBox">
+    <property name="visible">True</property>
+    <child>
+      <object class="GtkHBox" id="SimpleHBox">
+        <property name="visible">True</property>
+        <property name="tooltip_text" translatable="yes">Envelope</property>
+        <child>
+          <object class="GtkLabel" id="TitleLabel1">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">Room Size :</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="padding">10</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEntry" id="entry">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="invisible_char">●</property>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="REVFunButton">
+            <property name="label" translatable="yes">Fn</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="padding">10</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="position">0</property>
+      </packing>
+    </child>
+  </object>
+  <object class="GtkVBox" id="MediumVBox">
+    <property name="visible">True</property>
+    <child>
+      <object class="GtkHBox" id="hbox47">
+        <property name="visible">True</property>
+        <property name="tooltip_text" translatable="yes">Envelope</property>
+        <child>
+          <object class="GtkLabel" id="label46">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">Reverb Percentage :</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="padding">10</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEntry" id="REV_MediumReverbPercentEntry">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="invisible_char">●</property>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="REV_MediumReverbPercentFunButton">
+            <property name="label" translatable="yes">Fn</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="padding">10</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+      </object>
+      <packing>
         <property name="expand">False</property>
         <property name="position">0</property>
       </packing>
     </child>
     <child>
-      <object class="GtkEntry" id="entry">
+      <object class="GtkHBox" id="hbox48">
         <property name="visible">True</property>
-        <property name="can_focus">True</property>
-        <property name="invisible_char">&#x25CF;</property>
+        <property name="tooltip_text" translatable="yes">Float, 0.0 - 1.0</property>
+        <child>
+          <object class="GtkLabel" id="label47">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">Hilow Spread :</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="padding">10</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEntry" id="REV_MediumHilowSpreadEntry">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="invisible_char">●</property>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="REV_MediumHilowSpreadFunButton">
+            <property name="label" translatable="yes">Fn</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="padding">10</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
       </object>
       <packing>
         <property name="expand">False</property>
@@ -28,11 +218,44 @@
       </packing>
     </child>
     <child>
-      <object class="GtkButton" id="REVFunButton">
-        <property name="label" translatable="yes">fn</property>
+      <object class="GtkHBox" id="hbox49">
         <property name="visible">True</property>
-        <property name="can_focus">True</property>
-        <property name="receives_default">True</property>
+        <property name="tooltip_text" translatable="yes">Float, 0.0 - 1.0</property>
+        <child>
+          <object class="GtkLabel" id="label48">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">Gain All Pass :</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="padding">10</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEntry" id="REV_MediumGainAllPassEntry">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="invisible_char">●</property>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="REV_MediumGainAllPassFunButton">
+            <property name="label" translatable="yes">Fn</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="padding">10</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
       </object>
       <packing>
         <property name="expand">False</property>
@@ -40,12 +263,229 @@
       </packing>
     </child>
     <child>
-      <object class="GtkButton" id="REVRemoveButton">
-        <property name="label" translatable="yes">Rm.</property>
+      <object class="GtkHBox" id="hbox50">
         <property name="visible">True</property>
-        <property name="can_focus">True</property>
-        <property name="receives_default">True</property>
-        <property name="tooltip_text" translatable="yes">Remove this partial and corresponding partials in other channels</property>
+        <property name="tooltip_text" translatable="yes">Float, 0.0 - 1.0</property>
+        <child>
+          <object class="GtkLabel" id="label49">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">Delay :</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="padding">10</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEntry" id="REV_MediumDelayEntry">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="invisible_char">●</property>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="REV_MediumDelayFunButton">
+            <property name="label" translatable="yes">Fn</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="padding">10</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="position">3</property>
+      </packing>
+    </child>
+  </object>
+  <object class="GtkVBox" id="AdvancedVBox">
+    <property name="visible">True</property>
+    <child>
+      <object class="GtkHBox" id="hbox51">
+        <property name="visible">True</property>
+        <property name="tooltip_text" translatable="yes">Envelope</property>
+        <child>
+          <object class="GtkLabel" id="label50">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">Reverb Percentage :</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="padding">10</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEntry" id="REV_AdvancedReverbPercentEntry">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="invisible_char">●</property>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="REV_AdvancedReverbPercentFunButton">
+            <property name="label" translatable="yes">Fn</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="padding">10</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="position">0</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkHBox" id="hbox52">
+        <property name="visible">True</property>
+        <property name="tooltip_text" translatable="yes">Float1, Float2, Float3, Float4, Float5, Float6
+        It must contain exactly 6 numbers around 0.5</property>
+        <child>
+          <object class="GtkLabel" id="label51">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">Comb Gain List :</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="padding">10</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEntry" id="REV_AdvancedCombGainListEntry">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="invisible_char">●</property>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="REV_AdvancedCombGainListFunButton">
+            <property name="label" translatable="yes">Fn</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="padding">10</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="position">1</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkHBox" id="hbox55">
+        <property name="visible">True</property>
+        <property name="tooltip_text" translatable="yes">Float1, Float2, Float3, Float4, Float5, Float6
+        It must contain exactly 6 very small numbers </property>
+        <child>
+          <object class="GtkLabel" id="label54">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">LP Gain List :</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="padding">10</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEntry" id="REV_AdvancedLPGainListEntry">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="invisible_char">●</property>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="REV_LPGainListFunButton">
+            <property name="label" translatable="yes">Fn</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="padding">10</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="position">2</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkHBox" id="hbox53">
+        <property name="visible">True</property>
+        <property name="tooltip_text" translatable="yes">Float, 0.0 - 1.0</property>
+        <child>
+          <object class="GtkLabel" id="label52">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">Gain All Pass :</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="padding">10</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEntry" id="REV_AdvancedGainAllPassEntry">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="invisible_char">●</property>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="REV_AdvancedGainAllPassFunButton">
+            <property name="label" translatable="yes">Fn</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="padding">10</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
       </object>
       <packing>
         <property name="expand">False</property>
@@ -53,12 +493,44 @@
       </packing>
     </child>
     <child>
-      <object class="GtkButton" id="REVInsertButton">
-        <property name="label" translatable="yes">Ins.</property>
+      <object class="GtkHBox" id="hbox54">
         <property name="visible">True</property>
-        <property name="can_focus">True</property>
-        <property name="receives_default">True</property>
-        <property name="tooltip_text" translatable="yes">Insert a partial after this partial</property>
+        <property name="tooltip_text" translatable="yes">Float, 0.0 - 1.0</property>
+        <child>
+          <object class="GtkLabel" id="label53">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">Delay :</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="padding">10</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkEntry" id="REV_AdvancedDelayEntry">
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="invisible_char">●</property>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkButton" id="REV_AdvancedDelayFunButton">
+            <property name="label" translatable="yes">Fn</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="padding">10</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
       </object>
       <packing>
         <property name="expand">False</property>

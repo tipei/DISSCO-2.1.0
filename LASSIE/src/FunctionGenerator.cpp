@@ -1334,127 +1334,25 @@ FunctionGenerator::FunctionGenerator(
   entry->signal_changed().connect(sigc::mem_fun(
     *this, & FunctionGenerator::readREVFileTextChanged));
 
-  //REV_Simple
+  //REV_Simple, REV_Medium, REV_Advanced
+  // ZIYUAN CHEN, July 2023 - Add SOUND/PARTIAL switch for REV
 
   // TEJUS
   REVPartialAlignments = NULL;
   REVNumOfPartials = 0; // Start with no partials
   REVApplyFlag = 0; // default apply by sound
+  REVMethodFlag = 0; // default to REV_Simple
+  REVForcedRefresh = false; // only asserted in function_list_combo_changed
 
   attributesRefBuilder->get_widget(
-    "REVSimplePartialRadioButton", radiobutton);
+    "REVPartialRadioButton", radiobutton);
   radiobutton->signal_clicked().connect(sigc::mem_fun(
     *this, & FunctionGenerator::REVApplyByRadioButtonClicked));
 
   attributesRefBuilder->get_widget(
-    "REVSimpleSoundRadioButton", radiobutton);
+    "REVSoundRadioButton", radiobutton);
   radiobutton->signal_clicked().connect(sigc::mem_fun(
     *this, & FunctionGenerator::REVApplyByRadioButtonClicked));
-
-  //  attributesRefBuilder->get_widget(
-  //  "REV_SimpleEntryFunButton", button);
-  //button->signal_clicked().connect(sigc::mem_fun(
-  //  *this, &FunctionGenerator::REV_SimpleEntryFunButtonClicked));
-
-  //attributesRefBuilder->get_widget(
-  //  "REV_SimpleEntry", entry);
-  //entry->signal_changed().connect(sigc::mem_fun(
-  //  *this, & FunctionGenerator::REV_SimpleEntryTextChanged));
-
-  //REV_Medium
-
-  attributesRefBuilder->get_widget(
-    "REV_MediumReverbPercentFunButton", button);
-  button->signal_clicked().connect(sigc::mem_fun(
-    *this, &FunctionGenerator::REV_MediumReverbPercentFunButtonClicked));
-
-
-  attributesRefBuilder->get_widget(
-    "REV_MediumHilowSpreadFunButton", button);
-  button->signal_clicked().connect(sigc::mem_fun(
-    *this, &FunctionGenerator::REV_MediumHilowSpreadFunButtonClicked));
-
-
-  attributesRefBuilder->get_widget(
-    "REV_MediumGainAllPassFunButton", button);
-  button->signal_clicked().connect(sigc::mem_fun(
-    *this, &FunctionGenerator::REV_MediumGainAllPassFunButtonClicked));
-
-
-  attributesRefBuilder->get_widget(
-    "REV_MediumDelayFunButton", button);
-  button->signal_clicked().connect(sigc::mem_fun(
-    *this, &FunctionGenerator::REV_MediumDelayFunButtonClicked));
-
-  attributesRefBuilder->get_widget(
-    "REV_MediumReverbPercentEntry", entry);
-  entry->signal_changed().connect(sigc::mem_fun(
-    *this, & FunctionGenerator::REV_MediumTextChanged));
-
-  attributesRefBuilder->get_widget(
-    "REV_MediumHilowSpreadEntry", entry);
-  entry->signal_changed().connect(sigc::mem_fun(
-    *this, & FunctionGenerator::REV_MediumTextChanged));
-
-  attributesRefBuilder->get_widget(
-    "REV_MediumGainAllPassEntry", entry);
-  entry->signal_changed().connect(sigc::mem_fun(
-    *this, & FunctionGenerator::REV_MediumTextChanged));
-  attributesRefBuilder->get_widget(
-    "REV_MediumDelayEntry", entry);
-  entry->signal_changed().connect(sigc::mem_fun(
-    *this, & FunctionGenerator::REV_MediumTextChanged));
-
-  //REV_Advanced
-  attributesRefBuilder->get_widget(
-    "REV_AdvancedReverbPercentFunButton", button);
-  button->signal_clicked().connect(sigc::mem_fun(
-    *this, &FunctionGenerator::REV_AdvancedReverbPercentFunButtonClicked));
-
-
-  attributesRefBuilder->get_widget(
-    "REV_AdvancedCombGainListFunButton", button);
-  button->signal_clicked().connect(sigc::mem_fun(
-    *this, &FunctionGenerator::REV_AdvancedCombGainListFunButtonClicked));
-
-  attributesRefBuilder->get_widget(
-    "REV_LPGainListFunButton", button);
-  button->signal_clicked().connect(sigc::mem_fun(
-    *this, &FunctionGenerator::REV_AdvancedLPGainListFunButtonClicked));
-
-  attributesRefBuilder->get_widget(
-    "REV_AdvancedGainAllPassFunButton", button);
-  button->signal_clicked().connect(sigc::mem_fun(
-    *this, &FunctionGenerator::REV_AdvancedGainAllPassFunButtonClicked));
-
-
-  attributesRefBuilder->get_widget(
-    "REV_AdvancedDelayFunButton", button);
-  button->signal_clicked().connect(sigc::mem_fun(
-    *this, &FunctionGenerator::REV_AdvancedDelayFunButtonClicked));
-
-  attributesRefBuilder->get_widget(
-    "REV_AdvancedReverbPercentEntry", entry);
-  entry->signal_changed().connect(sigc::mem_fun(
-    *this, & FunctionGenerator::REV_AdvancedTextChanged));
-
-  attributesRefBuilder->get_widget(
-    "REV_AdvancedCombGainListEntry", entry);
-  entry->signal_changed().connect(sigc::mem_fun(
-    *this, & FunctionGenerator::REV_AdvancedTextChanged));
-
-  attributesRefBuilder->get_widget(
-    "REV_LPGainListEntry", entry);
-  entry->signal_changed().connect(sigc::mem_fun(
-    *this, & FunctionGenerator::REV_AdvancedTextChanged));
-  attributesRefBuilder->get_widget(
-    "REV_AdvancedGainAllPassEntry", entry);
-  entry->signal_changed().connect(sigc::mem_fun(
-    *this, & FunctionGenerator::REV_AdvancedTextChanged));
-  attributesRefBuilder->get_widget(
-    "REV_AdvancedDelayEntry", entry);
-  entry->signal_changed().connect(sigc::mem_fun(
-    *this, & FunctionGenerator::REV_AdvancedTextChanged));
 
   //ReadSIVFile
 
@@ -2716,18 +2614,19 @@ FunctionGenerator::FunctionGenerator(
     }
     combobox->set_active(iter);
 
+    REVMethodFlag = 0;
     thisElement = functionNameElement->getNextElementSibling();    // one argument
     //Add ApplyHow to REV_Simple
     if(getFunctionString(thisElement)=="SOUND"){
       REVApplyFlag = 0;
-      attributesRefBuilder->get_widget("REVSimpleSoundRadioButton",radiobutton);
+      attributesRefBuilder->get_widget("REVSoundRadioButton",radiobutton);
       radiobutton->set_active();
 
     }
 
     else {   //partial
       REVApplyFlag = 1;
-      attributesRefBuilder->get_widget("REVSimplePartialRadioButton",radiobutton);
+      attributesRefBuilder->get_widget("REVPartialRadioButton",radiobutton);
       radiobutton->set_active();
     }
 
@@ -2743,14 +2642,14 @@ FunctionGenerator::FunctionGenerator(
     if (REVPartialAlignments != NULL &&
         currentPartialElement != NULL) {
       // Replaces first row entry, instead of creating a new row for the first entry.
-      REVPartialAlignments->setText(getFunctionString(currentPartialElement));
+      REVPartialAlignments->setText(getFunctionString(currentPartialElement), "entry");
       currentPartialElement = currentPartialElement->getNextElementSibling();
     }
 
     while(currentPartialElement){
       auto partial = REVInsertPartial();
       if (partial != NULL) {
-          partial->setText(getFunctionString(currentPartialElement));	
+        partial->setText(getFunctionString(currentPartialElement), "entry");	
       }
       currentPartialElement = currentPartialElement->getNextElementSibling();
     }
@@ -2772,28 +2671,63 @@ FunctionGenerator::FunctionGenerator(
 
 
 
-      thisElement = functionNameElement->getNextElementSibling();
-      attributesRefBuilder->get_widget("REV_MediumReverbPercentEntry",entry);
-      entry->set_text(getFunctionString(thisElement));
+    // ZIYUAN CHEN, July 2023 - Support SOUND/PARTIAL switch
+    REVMethodFlag = 1;
+    thisElement = functionNameElement->getNextElementSibling();
 
-      thisElement = thisElement->getNextElementSibling();
-      attributesRefBuilder->get_widget("REV_MediumHilowSpreadEntry",entry);
-      entry->set_text(getFunctionString(thisElement));
+    if (getFunctionString(thisElement) == "SOUND") {
+      REVApplyFlag = 0;
+      attributesRefBuilder->get_widget("REVSoundRadioButton", radiobutton);
+      radiobutton->set_active();
+    }
+    else { // partial
+      REVApplyFlag = 1;
+      attributesRefBuilder->get_widget("REVPartialRadioButton", radiobutton);
+      radiobutton->set_active();
+    }
 
-      thisElement = thisElement->getNextElementSibling();
-      attributesRefBuilder->get_widget("REV_MediumGainAllPassEntry",entry);
-      entry->set_text(getFunctionString(thisElement));
+    DOMElement* percentsElement = thisElement->getNextElementSibling();
+    DOMElement* percentElement = percentsElement->getFirstElementChild();
+    DOMElement* spreadsElement = percentsElement->getNextElementSibling();
+    DOMElement* spreadElement = spreadsElement->getFirstElementChild();
+    DOMElement* allpassesElement = spreadsElement->getNextElementSibling();
+    DOMElement* allpassElement = allpassesElement->getFirstElementChild();
+    DOMElement* delaysElement = allpassesElement->getNextElementSibling();
+    DOMElement* delayElement = delaysElement->getFirstElementChild();
 
-      thisElement = thisElement->getNextElementSibling();
-      attributesRefBuilder->get_widget("REV_MediumDelayEntry",entry);
-      entry->set_text(getFunctionString(thisElement));
+    if (REVPartialAlignments != NULL && percentElement && spreadElement && allpassElement && delayElement) {
+      REVPartialAlignments->setText(getFunctionString(percentElement), "REV_MediumReverbPercentEntry");
+      REVPartialAlignments->setText(getFunctionString(spreadElement), "REV_MediumHilowSpreadEntry");
+      REVPartialAlignments->setText(getFunctionString(allpassElement), "REV_MediumGainAllPassEntry");
+      REVPartialAlignments->setText(getFunctionString(delayElement), "REV_MediumDelayEntry");
+      percentElement = percentElement->getNextElementSibling();
+      spreadElement = spreadElement->getNextElementSibling();
+      allpassElement = allpassElement->getNextElementSibling();
+      delayElement = delayElement->getNextElementSibling();
+    }
+
+    while (percentElement && spreadElement && allpassElement && delayElement) {
+      auto partial = REVInsertPartial();
+      if (partial != NULL) {
+        partial->setText(getFunctionString(percentElement), "REV_MediumReverbPercentEntry");
+        partial->setText(getFunctionString(spreadElement), "REV_MediumHilowSpreadEntry");
+        partial->setText(getFunctionString(allpassElement), "REV_MediumGainAllPassEntry");
+        partial->setText(getFunctionString(delayElement), "REV_MediumDelayEntry");
+      }
+      percentElement = percentElement->getNextElementSibling();
+      spreadElement = spreadElement->getNextElementSibling();
+      allpassElement = allpassElement->getNextElementSibling();
+      delayElement = delayElement->getNextElementSibling();
+    }
+
+    REVApplyByRadioButtonClicked();
 
 
 
     //end parsing
   }
 
-  //check if REV_Advanced
+  //check if REV_Advanced - Support SOUND/PARTIAL switch
   if(functionName.compare("REV_Advanced")==0){
     iter = combobox->get_model()->get_iter("0");
     row = *iter;
@@ -2804,25 +2738,62 @@ FunctionGenerator::FunctionGenerator(
     combobox->set_active(iter);
 
 
-      thisElement = functionNameElement->getNextElementSibling();
-      attributesRefBuilder->get_widget("REV_AdvancedReverbPercentEntry",entry);
-      entry->set_text(getFunctionString(thisElement));
+    // ZIYUAN CHEN, July 2023 - Support SOUND/PARTIAL switch
+    REVMethodFlag = 2;
+    thisElement = functionNameElement->getNextElementSibling();
 
-      thisElement = thisElement->getNextElementSibling();
-      attributesRefBuilder->get_widget("REV_AdvancedCombGainListEntry",entry);
-      entry->set_text(getFunctionString(thisElement));
+    if (getFunctionString(thisElement) == "SOUND") {
+      REVApplyFlag = 0;
+      attributesRefBuilder->get_widget("REVSoundRadioButton", radiobutton);
+      radiobutton->set_active();
+    }
+    else { // partial
+      REVApplyFlag = 1;
+      attributesRefBuilder->get_widget("REVPartialRadioButton", radiobutton);
+      radiobutton->set_active();
+    }
 
-      thisElement = thisElement->getNextElementSibling();
-      attributesRefBuilder->get_widget("REV_LPGainListEntry",entry);
-      entry->set_text(getFunctionString(thisElement));
+    DOMElement* percentsElement = thisElement->getNextElementSibling();
+    DOMElement* percentElement = percentsElement->getFirstElementChild();
+    DOMElement* cglistsElement = percentsElement->getNextElementSibling();
+    DOMElement* cglistElement = cglistsElement->getFirstElementChild();
+    DOMElement* lpglistsElement = cglistsElement->getNextElementSibling();
+    DOMElement* lpglistElement = lpglistsElement->getFirstElementChild();
+    DOMElement* allpassesElement = lpglistsElement->getNextElementSibling();
+    DOMElement* allpassElement = allpassesElement->getFirstElementChild();
+    DOMElement* delaysElement = allpassesElement->getNextElementSibling();
+    DOMElement* delayElement = delaysElement->getFirstElementChild();
 
-      thisElement = thisElement->getNextElementSibling();
-      attributesRefBuilder->get_widget("REV_AdvancedGainAllPassEntry",entry);
-      entry->set_text(getFunctionString(thisElement));
+    if (REVPartialAlignments != NULL && percentElement && cglistsElement && lpglistsElement && allpassElement && delayElement) {
+      REVPartialAlignments->setText(getFunctionString(percentElement), "REV_AdvancedReverbPercentEntry");
+      REVPartialAlignments->setText(getFunctionString(cglistElement), "REV_AdvancedCombGainListEntry");
+      REVPartialAlignments->setText(getFunctionString(lpglistElement), "REV_AdvancedLPGainListEntry");
+      REVPartialAlignments->setText(getFunctionString(allpassElement), "REV_AdvancedGainAllPassEntry");
+      REVPartialAlignments->setText(getFunctionString(delayElement), "REV_AdvancedDelayEntry");
+      percentElement = percentElement->getNextElementSibling();
+      cglistElement = cglistElement->getNextElementSibling();
+      lpglistElement = lpglistElement->getNextElementSibling();
+      allpassElement = allpassElement->getNextElementSibling();
+      delayElement = delayElement->getNextElementSibling();
+    }
 
-      thisElement = thisElement->getNextElementSibling();
-      attributesRefBuilder->get_widget("REV_AdvancedDelayEntry",entry);
-      entry->set_text(getFunctionString(thisElement));
+    while (percentElement && cglistsElement && lpglistsElement && allpassElement && delayElement) {
+      auto partial = REVInsertPartial();
+      if (partial != NULL) {
+        partial->setText(getFunctionString(percentElement), "REV_AdvancedReverbPercentEntry");
+        partial->setText(getFunctionString(cglistElement), "REV_AdvancedCombGainListEntry");
+        partial->setText(getFunctionString(lpglistElement), "REV_AdvancedLPGainListEntry");
+        partial->setText(getFunctionString(allpassElement), "REV_AdvancedGainAllPassEntry");
+        partial->setText(getFunctionString(delayElement), "REV_AdvancedDelayEntry");
+      }
+      percentElement = percentElement->getNextElementSibling();
+      cglistElement = cglistElement->getNextElementSibling();
+      lpglistElement = lpglistElement->getNextElementSibling();
+      allpassElement = allpassElement->getNextElementSibling();
+      delayElement = delayElement->getNextElementSibling();
+    }
+
+    REVApplyByRadioButtonClicked();
 
 
     //end parsing
@@ -3618,70 +3589,58 @@ void FunctionGenerator::function_list_combo_changed(){
         resize(400,300);
 
       }
-      else if (function == functionREV_Simple){
+      // ZIYUAN CHEN, July 2023 - Unify functionREV window builder
+      else if (function == functionREV_Simple ||
+               function == functionREV_Medium ||
+               function == functionREV_Advanced){
         alignment->remove(); //remove the current parameter box
-        attributesRefBuilder->get_widget("REV_SimpleVBox", vbox);
+        attributesRefBuilder->get_widget("REVVBox", vbox);
         alignment->add (*vbox); //add vbox in
+
+        int oldREVMethodFlag = REVMethodFlag;
+
+        switch (function) {
+          case functionREV_Simple:
+            REVMethodFlag = 0;
+            break;
+          case functionREV_Medium:
+            REVMethodFlag = 1;
+            break;
+          case functionREV_Advanced:
+            REVMethodFlag = 2;
+            break;
+        }
 
         // Ensure there is one sound box upon inserting reverb for the first time
         // Otherwise, you get stuck!
         if (!REVNumOfPartials) {
           REVInsertPartial();
         }
+        else { // window refreshing procedure
+
+          /* Remove all partials to start over with a clean slate
+           * - Unlike SPAPartialAlignments with all properties labeled as <Partial>,
+           *   REVPartialAlignments are heterogeneous in nature (Simple mode has 1
+           *   property, Medium has 4, Advanced has 5). A complete refresh is thus needed
+           * - Note that the FIRST partial CANNOT be removed, a safeguard enforced by
+           *   REVRemovePartial() - we choose to keep that
+           * - See documentation for REVRemovePartial() for the effect of REVForcedRefresh
+           */
+          REVForcedRefresh = true;
+          int tmp = REVNumOfPartials;
+          while (REVPartialAlignments->next) {
+            REVRemovePartial(REVPartialAlignments->next);
+          }
+          for (int i = 0; i < tmp; i++) {
+            REVInsertPartial();
+          }
+          REVRemovePartial(REVPartialAlignments); // remove the remnant (head)
+          REVForcedRefresh = false;
+        }
 
         REVApplyByRadioButtonClicked();
         set_position(Gtk::WIN_POS_CENTER_ALWAYS);
         resize(400,300);
-      }
-      else if (function == functionREV_Medium){
-        alignment->remove(); //remove the current parameter box
-        attributesRefBuilder->get_widget("REV_MediumVBox", vbox);
-        alignment->add (*vbox); //add random vbox in
-        //reset all data
-        attributesRefBuilder->get_widget(
-          "REV_MediumReverbPercentEntry", entry);
-        entry->set_text("ENV");
-        attributesRefBuilder->get_widget(
-          "REV_MediumHilowSpreadEntry", entry);
-        entry->set_text("");
-        attributesRefBuilder->get_widget(
-          "REV_MediumGainAllPassEntry", entry);
-        entry->set_text("");
-        attributesRefBuilder->get_widget(
-          "REV_MediumDelayEntry", entry);
-        entry->set_text("");
-
-        REV_MediumTextChanged();
-        set_position(Gtk::WIN_POS_CENTER_ALWAYS);
-        resize(400,300);
-
-      }
-      else if (function == functionREV_Advanced){
-        alignment->remove(); //remove the current parameter box
-        attributesRefBuilder->get_widget("REV_AdvancedVBox", vbox);
-        alignment->add (*vbox); //add random vbox in
-        //reset all data
-        attributesRefBuilder->get_widget(
-          "REV_AdvancedReverbPercentEntry", entry);
-        entry->set_text("ENV");
-        attributesRefBuilder->get_widget(
-          "REV_AdvancedCombGainListEntry", entry);
-        entry->set_text("0.46, 0.48, 0.50, 0.52, 0.53, 0.55");
-        attributesRefBuilder->get_widget(
-          "REV_LPGainListEntry", entry);
-        entry->set_text("0.05, 0.06, 0.07, 0.05, 0.04, 0.02");
-
-        attributesRefBuilder->get_widget(
-          "REV_AdvancedGainAllPassEntry", entry);
-        entry->set_text("");
-        attributesRefBuilder->get_widget(
-          "REV_AdvancedDelayEntry", entry);
-        entry->set_text("");
-
-        REV_AdvancedTextChanged();
-        set_position(Gtk::WIN_POS_CENTER_ALWAYS);
-        resize(400,300);
-
       }
       else if (function == functionSPA){
 
@@ -6000,237 +5959,6 @@ void FunctionGenerator::readREVFileTextChanged(){
 
 }
 
-
-void FunctionGenerator::REV_SimpleEntryFunButtonClicked(){
-  Gtk::Entry* entry;
-  attributesRefBuilder->get_widget(
-    "REV_SimpleEntry", entry);
-
-  FunctionGenerator* generator =
-    new FunctionGenerator(functionReturnFloat,entry->get_text());
-  generator->run();
-
-  if (generator->getResultString() !=""){
-    entry->set_text(generator->getResultString());
-  }
-  delete generator;
-}
-
-void FunctionGenerator::REV_SimpleEntryTextChanged(){
-  Gtk::TextView* textview;
-  attributesRefBuilder->get_widget("resultStringTextView", textview);
-  Gtk::Entry* entry;
-
-
-  attributesRefBuilder->get_widget(
-    "REV_SimpleEntry", entry);
-  std::string stringbuffer = "<Fun><Name>REV_Simple</Name><Size>" + entry->get_text() + "</Size></Fun>";
-
-
-  textview->get_buffer()->set_text(stringbuffer);
-
-
-}
-
-
-void FunctionGenerator::REV_MediumReverbPercentFunButtonClicked(){
-  Gtk::Entry* entry;
-  attributesRefBuilder->get_widget(
-    "REV_MediumReverbPercentEntry", entry);
-
-  FunctionGenerator* generator =
-    new FunctionGenerator(functionReturnENV,entry->get_text());
-  generator->run();
-
-  if (generator->getResultString() !=""){
-    entry->set_text(generator->getResultString());
-  }
-  delete generator;
-}
-
-void FunctionGenerator::REV_MediumHilowSpreadFunButtonClicked(){
-  Gtk::Entry* entry;
-  attributesRefBuilder->get_widget(
-    "REV_MediumHilowSpreadEntry", entry);
-
-  FunctionGenerator* generator =
-    new FunctionGenerator(functionReturnFloat,entry->get_text());
-  generator->run();
-
-  if (generator->getResultString() !=""){
-    entry->set_text(generator->getResultString());
-  }
-  delete generator;
-}
-
-void FunctionGenerator::REV_MediumGainAllPassFunButtonClicked(){
-  Gtk::Entry* entry;
-  attributesRefBuilder->get_widget(
-    "REV_MediumGainAllPassEntry", entry);
-
-  FunctionGenerator* generator =
-    new FunctionGenerator(functionReturnFloat,entry->get_text());
-  generator->run();
-
-  if (generator->getResultString() !=""){
-    entry->set_text(generator->getResultString());
-  }
-  delete generator;
-}
-
-void FunctionGenerator::REV_MediumDelayFunButtonClicked(){
-  Gtk::Entry* entry;
-  attributesRefBuilder->get_widget(
-    "REV_MediumDelayEntry", entry);
-
-  FunctionGenerator* generator =
-    new FunctionGenerator(functionReturnFloat,entry->get_text());
-  generator->run();
-
-  if (generator->getResultString() !=""){
-    entry->set_text(generator->getResultString());
-  }
-  delete generator;
-}
-
-void FunctionGenerator::REV_MediumTextChanged(){
-  Gtk::TextView* textview;
-  attributesRefBuilder->get_widget("resultStringTextView", textview);
-  Gtk::Entry* entry;
-
-
-  attributesRefBuilder->get_widget(
-    "REV_MediumReverbPercentEntry", entry);
-  std::string stringbuffer = "<Fun><Name>REV_Medium</Name><Percent>" + entry->get_text() + "</Percent><Spread>";
-
-  attributesRefBuilder->get_widget(
-    "REV_MediumHilowSpreadEntry", entry);
-  stringbuffer = stringbuffer + entry->get_text() + "</Spread><AllPass>";
-
-  attributesRefBuilder->get_widget(
-    "REV_MediumGainAllPassEntry", entry);
-  stringbuffer = stringbuffer + entry->get_text() + "</AllPass><Delay>";
-
-  attributesRefBuilder->get_widget(
-    "REV_MediumDelayEntry", entry);
-  stringbuffer = stringbuffer + entry->get_text() + "</Delay></Fun>";
-  textview->get_buffer()->set_text(stringbuffer);
-
-
-}
-
-
-
-
-void FunctionGenerator::REV_AdvancedReverbPercentFunButtonClicked(){
-  Gtk::Entry* entry;
-  attributesRefBuilder->get_widget(
-    "REV_AdvancedReverbPercentEntry", entry);
-
-  FunctionGenerator* generator =
-    new FunctionGenerator(functionReturnENV,entry->get_text());
-  generator->run();
-
-  if (generator->getResultString() !=""){
-    entry->set_text(generator->getResultString());
-  }
-  delete generator;
-}
-
-void FunctionGenerator::REV_AdvancedCombGainListFunButtonClicked(){
-  Gtk::Entry* entry;
-  attributesRefBuilder->get_widget(
-    "REV_AdvancedCombGainListEntry", entry);
-
-  FunctionGenerator* generator =
-    new FunctionGenerator(functionReturnList,entry->get_text());
-  generator->run();
-
-  if (generator->getResultString() !=""){
-    entry->set_text(generator->getResultString());
-  }
-  delete generator;
-}
-
-void FunctionGenerator::REV_AdvancedLPGainListFunButtonClicked(){
-  Gtk::Entry* entry;
-  attributesRefBuilder->get_widget(
-    "REV_LPGainListEntry", entry);
-
-  FunctionGenerator* generator =
-    new FunctionGenerator(functionReturnList,entry->get_text());
-  generator->run();
-
-  if (generator->getResultString() !=""){
-    entry->set_text(generator->getResultString());
-  }
-  delete generator;
-}
-
-
-
-void FunctionGenerator::REV_AdvancedGainAllPassFunButtonClicked(){
-  Gtk::Entry* entry;
-  attributesRefBuilder->get_widget(
-    "REV_AdvancedGainAllPassEntry", entry);
-
-  FunctionGenerator* generator =
-    new FunctionGenerator(functionReturnFloat,entry->get_text());
-  generator->run();
-
-  if (generator->getResultString() !=""){
-    entry->set_text(generator->getResultString());
-  }
-  delete generator;
-}
-
-void FunctionGenerator::REV_AdvancedDelayFunButtonClicked(){
-  Gtk::Entry* entry;
-  attributesRefBuilder->get_widget(
-    "REV_AdvancedDelayEntry", entry);
-
-  FunctionGenerator* generator =
-    new FunctionGenerator(functionReturnFloat,entry->get_text());
-  generator->run();
-
-  if (generator->getResultString() !=""){
-    entry->set_text(generator->getResultString());
-  }
-  delete generator;
-}
-
-
-
-void FunctionGenerator::REV_AdvancedTextChanged(){
-  Gtk::TextView* textview;
-  attributesRefBuilder->get_widget("resultStringTextView", textview);
-  Gtk::Entry* entry;
-
-
-  attributesRefBuilder->get_widget(
-    "REV_AdvancedReverbPercentEntry", entry);
-  std::string stringbuffer = "<Fun><Name>REV_Advanced</Name><Percent>" + entry->get_text() + "</Percent><CombGainList>";
-
-  attributesRefBuilder->get_widget(
-    "REV_AdvancedCombGainListEntry", entry);
-  stringbuffer = stringbuffer + entry->get_text() + "</CombGainList><LPGainList>";
-
-  attributesRefBuilder->get_widget(
-    "REV_LPGainListEntry", entry);
-  stringbuffer = stringbuffer + entry->get_text() + "</LPGainList><AllPass>";
-
-  attributesRefBuilder->get_widget(
-    "REV_AdvancedGainAllPassEntry", entry);
-  stringbuffer = stringbuffer + entry->get_text() + "</AllPass><Delay>";
-
-  attributesRefBuilder->get_widget(
-    "REV_AdvancedDelayEntry", entry);
-  stringbuffer = stringbuffer + entry->get_text() + "</Delay></Fun>";
-  textview->get_buffer()->set_text(stringbuffer);
-
-
-}
-
 void FunctionGenerator::readSIVFileTextChanged(){
   Gtk::TextView* textview;
   attributesRefBuilder->get_widget("resultStringTextView", textview);
@@ -7364,14 +7092,20 @@ std::string FunctionGenerator::getFunctionString(DOMElement* _thisFunctionElemen
 
 void FunctionGenerator::REVRemovePartial(REVPartialAlignment* _remove){
 
-  if (REVNumOfPartials==1||REVApplyFlag==0){
+  /* ZIYUAN CHEN, July 2023
+   * The REVForcedRefresh flag handles the method switch when REVApplyFlag = 0
+   * (by SOUND). When REVMethodFlag is updated, the VBoxes for the old method
+   * should be forcefully removed before being replaced by new ones. Otherwise,
+   * this creates an infinite loop in function_list_combo_changed()!
+   */
+  if ((REVNumOfPartials==1||REVApplyFlag==0) && !REVForcedRefresh){
     return;
   }
 
-  Gtk::VBox* vbox;
+  Gtk::HBox* hbox;
   attributesRefBuilder->get_widget(
-    "REVSimpleMainVBox", vbox);
-  vbox->remove ( *_remove);
+    "REVMainHBox", hbox);
+  hbox->remove ( *_remove);
 
   REVNumOfPartials --;
   if (_remove == REVPartialAlignments){ //if removing head
@@ -7389,17 +7123,7 @@ void FunctionGenerator::REVRemovePartial(REVPartialAlignment* _remove){
     }
   }
 
-
-  // Update partial number counts for all nodes
-  auto curr = REVPartialAlignments;
-  int i = 1;
-
-  while (curr) {
-    // Set the partial number on the left column of the window
-    curr->setNumber(i);
-    curr = curr->next;
-    i ++;
-  }
+  REVPartialAlignments->refreshPartialNumbersAndLayout();
 
   delete _remove;
   // Update result string and display window
@@ -7422,11 +7146,40 @@ FunctionGenerator::REVPartialAlignment* FunctionGenerator::REVInsertPartial (){
     REVPartialAlignments->appendNewNode(newSubAlignment);
   }
 
-  Gtk::VBox * vbox;
+  Gtk::HBox * hbox;
   attributesRefBuilder->get_widget(
-    "REVSimpleMainVBox", vbox);
-  vbox->pack_start(*newSubAlignment,Gtk::PACK_SHRINK);
+    "REVMainHBox", hbox);
+  hbox->pack_start(*newSubAlignment,Gtk::PACK_SHRINK);
+
+  // append new node to the end of linked list, no need to refresh
   newSubAlignment->setNumber(REVNumOfPartials);
+  REVTextChanged();
+  show_all_children();
+  return newSubAlignment;
+}
+
+
+// ZIYUAN CHEN, July 2023
+FunctionGenerator::REVPartialAlignment* FunctionGenerator::REVInsertPartial (REVPartialAlignment* _insertAfter){
+
+  REVNumOfPartials ++;
+
+  REVPartialAlignment* newSubAlignment =
+    new REVPartialAlignment(this);
+  newSubAlignment->next = _insertAfter->next;
+  newSubAlignment->prev = _insertAfter;
+  if (_insertAfter->next != NULL){
+    _insertAfter->next->prev = newSubAlignment;
+  }
+  _insertAfter->next = newSubAlignment;
+
+  Gtk::HBox * hbox;
+  attributesRefBuilder->get_widget(
+    "REVMainHBox", hbox);
+  hbox->pack_start(*newSubAlignment,Gtk::PACK_SHRINK);
+
+  // insert new node among linked elements, refresh numberings and layout
+  REVPartialAlignments->refreshPartialNumbersAndLayout();
   REVTextChanged();
   show_all_children();
   return newSubAlignment;
@@ -7437,14 +7190,14 @@ FunctionGenerator::REVPartialAlignment* FunctionGenerator::REVInsertPartial (){
 
 void FunctionGenerator::REVApplyByRadioButtonClicked(){
   Gtk::RadioButton* radiobutton;
-  attributesRefBuilder->get_widget( "REVSimpleSoundRadioButton", radiobutton);
+  attributesRefBuilder->get_widget( "REVSoundRadioButton", radiobutton);
   REVPartialAlignment* curr = REVPartialAlignments;
 
   if (radiobutton->get_active()){ //applied by sound
     REVApplyFlag = 0;
     // First partial: change to be the sound
     if (curr!=NULL){
-      curr->setLabel("Room Size: ");
+      curr->setLabel("Sound");
       curr = curr->next;
     }
 
@@ -7481,10 +7234,22 @@ void FunctionGenerator::REVTextChanged(){
   Gtk::TextView* textview;
   attributesRefBuilder->get_widget("resultStringTextView", textview);
   Gtk::RadioButton* applyHow;
-  attributesRefBuilder->get_widget( "REVSimpleSoundRadioButton", applyHow);
-  stringbuffer = "<Fun><Name>REV_Simple</Name><Apply>";
+  attributesRefBuilder->get_widget( "REVSoundRadioButton", applyHow);
+
+  switch (REVMethodFlag) {
+    case 0:
+      stringbuffer = "<Fun><Name>REV_Simple</Name><Apply>";
+      break;
+    case 1:
+      stringbuffer = "<Fun><Name>REV_Medium</Name><Apply>";
+      break;
+    case 2:
+      stringbuffer = "<Fun><Name>REV_Advanced</Name><Apply>";
+      break;
+  }
+
   // Applyhow = SOUND
-  if (applyHow->get_active()){
+  if (REVApplyFlag == 0){
     stringbuffer = stringbuffer +"SOUND";
   }
   // Applyhow = PARTIAL
@@ -7492,16 +7257,93 @@ void FunctionGenerator::REVTextChanged(){
     stringbuffer = stringbuffer +"PARTIAL";
   }
 
-  stringbuffer = stringbuffer + "</Apply><Sizes>";
+  REVPartialAlignment* curr;
 
-  // Build result string using each partial's room size
-  REVPartialAlignment* curr = REVPartialAlignments;
-  while (curr != NULL){
-        stringbuffer = stringbuffer + curr->getText();
+  // ZIYUAN CHEN, July 2023
+  switch (REVMethodFlag) {
+    case 0:
+      stringbuffer = stringbuffer + "</Apply><Sizes>";
+      // Build result string using each partial's room size
+      curr = REVPartialAlignments;
+      while (curr != NULL){
+        stringbuffer = stringbuffer + curr->getText("Size", "entry");
+        if (REVApplyFlag == 0) break;
         curr = curr->next;
-  }
+      }
+      stringbuffer = stringbuffer + "</Sizes></Fun>";
+      break;
 
-  stringbuffer = stringbuffer + "</Sizes></Fun>";
+    case 1:
+      stringbuffer = stringbuffer + "</Apply><Percents>";
+      curr = REVPartialAlignments;
+      while (curr != NULL){
+        stringbuffer = stringbuffer + curr->getText("Percent", "REV_MediumReverbPercentEntry");
+        if (REVApplyFlag == 0) break;
+        curr = curr->next;
+      }
+      stringbuffer = stringbuffer + "</Percents><Spreads>";
+      curr = REVPartialAlignments;
+      while (curr != NULL){
+        stringbuffer = stringbuffer + curr->getText("Spread", "REV_MediumHilowSpreadEntry");
+        if (REVApplyFlag == 0) break;
+        curr = curr->next;
+      }
+      stringbuffer = stringbuffer + "</Spreads><AllPasses>";
+      curr = REVPartialAlignments;
+      while (curr != NULL){
+        stringbuffer = stringbuffer + curr->getText("AllPass", "REV_MediumGainAllPassEntry");
+        if (REVApplyFlag == 0) break;
+        curr = curr->next;
+      }
+      stringbuffer = stringbuffer + "</AllPasses><Delays>";
+      curr = REVPartialAlignments;
+      while (curr != NULL){
+        stringbuffer = stringbuffer + curr->getText("Delay", "REV_MediumDelayEntry");
+        if (REVApplyFlag == 0) break;
+        curr = curr->next;
+      }
+      stringbuffer = stringbuffer + "</Delays></Fun>";
+      break;
+
+    case 2:
+      stringbuffer = stringbuffer + "</Apply><Percents>";
+      curr = REVPartialAlignments;
+      while (curr != NULL){
+        stringbuffer = stringbuffer + curr->getText("Percent", "REV_AdvancedReverbPercentEntry");
+        if (REVApplyFlag == 0) break;
+        curr = curr->next;
+      }
+      stringbuffer = stringbuffer + "</Percents><CombGainLists>";
+      curr = REVPartialAlignments;
+      while (curr != NULL){
+        stringbuffer = stringbuffer + curr->getText("CombGainList", "REV_AdvancedCombGainListEntry");
+        if (REVApplyFlag == 0) break;
+        curr = curr->next;
+      }
+      stringbuffer = stringbuffer + "</CombGainLists><LPGainLists>";
+      curr = REVPartialAlignments;
+      while (curr != NULL){
+        stringbuffer = stringbuffer + curr->getText("LPGainList", "REV_AdvancedLPGainListEntry");
+        if (REVApplyFlag == 0) break;
+        curr = curr->next;
+      }
+      stringbuffer = stringbuffer + "</LPGainLists><AllPasses>";
+      curr = REVPartialAlignments;
+      while (curr != NULL){
+        stringbuffer = stringbuffer + curr->getText("AllPass", "REV_AdvancedGainAllPassEntry");
+        if (REVApplyFlag == 0) break;
+        curr = curr->next;
+      }
+      stringbuffer = stringbuffer + "</AllPasses><Delays>";
+      curr = REVPartialAlignments;
+      while (curr != NULL){
+        stringbuffer = stringbuffer + curr->getText("Delay", "REV_AdvancedDelayEntry");
+        if (REVApplyFlag == 0) break;
+        curr = curr->next;
+      }
+      stringbuffer = stringbuffer + "</Delays></Fun>";
+      break;
+  }
   
   textview->get_buffer()->set_text(stringbuffer);
 
@@ -7542,30 +7384,110 @@ FunctionGenerator::REVPartialAlignment::REVPartialAlignment(
    #endif
 
   Gtk::HBox* hbox;
+  Gtk::VBox* vbox, *subvbox;
   attributesRefBuilder->get_widget("MainHBox", hbox);
   add(*hbox);
 
   Gtk::Button* button;
-  
-  attributesRefBuilder->get_widget( "REVRemoveButton", button);
+  Gtk::Entry* entry;
+
+  attributesRefBuilder->get_widget( "RemovePartialButton", button);
   button->signal_clicked().connect(sigc::mem_fun(
     *this,
     &FunctionGenerator::REVPartialAlignment::removePartialButtonClicked));
 
-  attributesRefBuilder->get_widget( "REVInsertButton", button);
+  attributesRefBuilder->get_widget( "InsertPartialButton", button);
   button->signal_clicked().connect(sigc::mem_fun(
     *this,
     &FunctionGenerator::REVPartialAlignment::insertPartialButtonClicked));
 
-  attributesRefBuilder->get_widget( "REVFunButton", button);
-  button->signal_clicked().connect(sigc::mem_fun(
-    *this, &FunctionGenerator::REVPartialAlignment::funButtonClicked));
+  attributesRefBuilder->get_widget( "MainVBox", vbox);
 
+  // ZIYUAN CHEN, July 2023
+  switch (parent->REVMethodFlag) {
+    case 0:
+      attributesRefBuilder->get_widget( "SimpleVBox", subvbox);
+      vbox->pack_start(*subvbox, Gtk::PACK_SHRINK);
 
-  Gtk::Entry* entry;
-  attributesRefBuilder->get_widget( "entry", entry);
-  entry->signal_changed().connect(sigc::mem_fun(
-    *this, & FunctionGenerator::REVPartialAlignment::textChanged));
+      attributesRefBuilder->get_widget( "REVFunButton", button);
+      button->signal_clicked().connect(sigc::mem_fun(
+        *this, &FunctionGenerator::REVPartialAlignment::SimpleEntryFunButtonClicked));
+
+      attributesRefBuilder->get_widget( "entry", entry);
+      entry->signal_changed().connect(sigc::mem_fun(
+        *this, & FunctionGenerator::REVPartialAlignment::textChanged));
+      break;
+
+    case 1:
+      attributesRefBuilder->get_widget( "MediumVBox", subvbox);
+      vbox->pack_start(*subvbox, Gtk::PACK_SHRINK);
+
+      attributesRefBuilder->get_widget( "REV_MediumReverbPercentFunButton", button);
+      button->signal_clicked().connect(sigc::mem_fun(
+        *this, &FunctionGenerator::REVPartialAlignment::MediumReverbPercentFunButtonClicked));
+      attributesRefBuilder->get_widget( "REV_MediumHilowSpreadFunButton", button);
+      button->signal_clicked().connect(sigc::mem_fun(
+        *this, &FunctionGenerator::REVPartialAlignment::MediumHilowSpreadFunButtonClicked));
+      attributesRefBuilder->get_widget( "REV_MediumGainAllPassFunButton", button);
+      button->signal_clicked().connect(sigc::mem_fun(
+        *this, &FunctionGenerator::REVPartialAlignment::MediumGainAllPassFunButtonClicked));
+      attributesRefBuilder->get_widget( "REV_MediumDelayFunButton", button);
+      button->signal_clicked().connect(sigc::mem_fun(
+        *this, &FunctionGenerator::REVPartialAlignment::MediumDelayFunButtonClicked));
+
+      attributesRefBuilder->get_widget( "REV_MediumReverbPercentEntry", entry);
+      entry->signal_changed().connect(sigc::mem_fun(
+        *this, & FunctionGenerator::REVPartialAlignment::textChanged));
+      attributesRefBuilder->get_widget( "REV_MediumHilowSpreadEntry", entry);
+      entry->signal_changed().connect(sigc::mem_fun(
+        *this, & FunctionGenerator::REVPartialAlignment::textChanged));
+      attributesRefBuilder->get_widget( "REV_MediumGainAllPassEntry", entry);
+      entry->signal_changed().connect(sigc::mem_fun(
+        *this, & FunctionGenerator::REVPartialAlignment::textChanged));
+      attributesRefBuilder->get_widget( "REV_MediumDelayEntry", entry);
+      entry->signal_changed().connect(sigc::mem_fun(
+        *this, & FunctionGenerator::REVPartialAlignment::textChanged));
+      break;
+
+    case 2:
+      attributesRefBuilder->get_widget( "AdvancedVBox", subvbox);
+      vbox->pack_start(*subvbox, Gtk::PACK_SHRINK);
+
+      attributesRefBuilder->get_widget( "REV_AdvancedReverbPercentFunButton", button);
+      button->signal_clicked().connect(sigc::mem_fun(
+        *this, &FunctionGenerator::REVPartialAlignment::AdvancedReverbPercentFunButtonClicked));
+      attributesRefBuilder->get_widget( "REV_AdvancedCombGainListFunButton", button);
+      button->signal_clicked().connect(sigc::mem_fun(
+        *this, &FunctionGenerator::REVPartialAlignment::AdvancedCombGainListFunButtonClicked));
+      attributesRefBuilder->get_widget( "REV_LPGainListFunButton", button);
+      button->signal_clicked().connect(sigc::mem_fun(
+        *this, &FunctionGenerator::REVPartialAlignment::AdvancedLPGainListFunButtonClicked));
+      attributesRefBuilder->get_widget( "REV_AdvancedGainAllPassFunButton", button);
+      button->signal_clicked().connect(sigc::mem_fun(
+        *this, &FunctionGenerator::REVPartialAlignment::AdvancedGainAllPassFunButtonClicked));
+      attributesRefBuilder->get_widget( "REV_AdvancedDelayFunButton", button);
+      button->signal_clicked().connect(sigc::mem_fun(
+        *this, &FunctionGenerator::REVPartialAlignment::AdvancedDelayFunButtonClicked));
+      
+      attributesRefBuilder->get_widget( "REV_AdvancedReverbPercentEntry", entry);
+      entry->signal_changed().connect(sigc::mem_fun(
+        *this, & FunctionGenerator::REVPartialAlignment::textChanged));
+      attributesRefBuilder->get_widget( "REV_AdvancedCombGainListEntry", entry);
+        entry->set_text("0.46, 0.48, 0.50, 0.52, 0.53, 0.55");
+      entry->signal_changed().connect(sigc::mem_fun(
+        *this, & FunctionGenerator::REVPartialAlignment::textChanged));
+      attributesRefBuilder->get_widget( "REV_AdvancedLPGainListEntry", entry);
+        entry->set_text("0.05, 0.06, 0.07, 0.05, 0.04, 0.02");
+      entry->signal_changed().connect(sigc::mem_fun(
+        *this, & FunctionGenerator::REVPartialAlignment::textChanged));
+      attributesRefBuilder->get_widget( "REV_AdvancedGainAllPassEntry", entry);
+      entry->signal_changed().connect(sigc::mem_fun(
+        *this, & FunctionGenerator::REVPartialAlignment::textChanged));
+      attributesRefBuilder->get_widget( "REV_AdvancedDelayEntry", entry);
+      entry->signal_changed().connect(sigc::mem_fun(
+        *this, & FunctionGenerator::REVPartialAlignment::textChanged));
+      break;
+  }
   
 }
 
@@ -7591,14 +7513,49 @@ void FunctionGenerator::REVPartialAlignment::setNumber(int _number){
   label->set_text(stringbuffer);
 }
 
+// ZIYUAN CHEN, July 2023
+#define DO_ENTRY_EDIT_SWITCH \
+do { \
+  if (_flag == OFF) { \
+    entry->set_sensitive(false); \
+  } \
+  else { \
+    entry->set_sensitive(true); \
+  } \
+} while (0)
+
 void FunctionGenerator::REVPartialAlignment::entryEditSwitch(int _flag){
   Gtk::Entry* entry;
-  attributesRefBuilder->get_widget( "entry", entry);
-  if (_flag == OFF){
-    entry->set_sensitive(false);
-  }
-  else {
-    entry->set_sensitive(true);
+
+  switch (parent->REVMethodFlag) {
+    case 0:
+      attributesRefBuilder->get_widget( "entry", entry);
+      DO_ENTRY_EDIT_SWITCH;
+      break;
+
+    case 1:
+      attributesRefBuilder->get_widget( "REV_MediumReverbPercentEntry", entry);
+      DO_ENTRY_EDIT_SWITCH;
+      attributesRefBuilder->get_widget( "REV_MediumHilowSpreadEntry", entry);
+      DO_ENTRY_EDIT_SWITCH;
+      attributesRefBuilder->get_widget( "REV_MediumGainAllPassEntry", entry);
+      DO_ENTRY_EDIT_SWITCH;
+      attributesRefBuilder->get_widget( "REV_MediumDelayEntry", entry);
+      DO_ENTRY_EDIT_SWITCH;
+      break;
+
+    case 2:
+      attributesRefBuilder->get_widget( "REV_AdvancedReverbPercentEntry", entry);
+      DO_ENTRY_EDIT_SWITCH;
+      attributesRefBuilder->get_widget( "REV_AdvancedCombGainListEntry", entry);
+      DO_ENTRY_EDIT_SWITCH;
+      attributesRefBuilder->get_widget( "REV_AdvancedLPGainListEntry", entry);
+      DO_ENTRY_EDIT_SWITCH;
+      attributesRefBuilder->get_widget( "REV_AdvancedGainAllPassEntry", entry);
+      DO_ENTRY_EDIT_SWITCH;
+      attributesRefBuilder->get_widget( "REV_AdvancedDelayEntry", entry);
+      DO_ENTRY_EDIT_SWITCH;
+      break;
   }
 }
 
@@ -7610,17 +7567,19 @@ void FunctionGenerator::REVPartialAlignment::setLabel(string _label){
 
 
 
-std::string FunctionGenerator::REVPartialAlignment::getText(){
+// ZIYUAN CHEN, July 2023 - Revised to customize _propname
+std::string FunctionGenerator::REVPartialAlignment::getText(std::string _propname, std::string _id){
   Gtk::Entry* entry;
-  attributesRefBuilder->get_widget( "entry", entry);
-  string stringbuffer = "<Size>" + entry->get_text() + "</Size>";
+  attributesRefBuilder->get_widget( _id, entry);
+  string stringbuffer = "<" + _propname + ">" + entry->get_text() + "</" + _propname + ">";
   return    stringbuffer;
 }
 
 
-void FunctionGenerator::REVPartialAlignment::setText(std::string _string){
+// ZIYUAN CHEN, July 2023 - Revised to specify element _id
+void FunctionGenerator::REVPartialAlignment::setText(std::string _string, std::string _id){
   Gtk::Entry* entry;
-  attributesRefBuilder->get_widget( "entry", entry);
+  attributesRefBuilder->get_widget( _id, entry);
   entry->set_text(_string);
 }
 
@@ -7631,7 +7590,7 @@ void FunctionGenerator::REVPartialAlignment::textChanged(){
 }
 
 
-void FunctionGenerator::REVPartialAlignment::funButtonClicked(){
+void FunctionGenerator::REVPartialAlignment::SimpleEntryFunButtonClicked(){
   Gtk::Entry* entry;
   attributesRefBuilder->get_widget(
     "entry", entry);
@@ -7651,10 +7610,151 @@ void FunctionGenerator::REVPartialAlignment::funButtonClicked(){
 }
 
 
+void FunctionGenerator::REVPartialAlignment::MediumReverbPercentFunButtonClicked(){
+  Gtk::Entry* entry;
+  attributesRefBuilder->get_widget(
+    "REV_MediumReverbPercentEntry", entry);
+
+  FunctionGenerator* generator =
+    new FunctionGenerator(functionReturnENV,entry->get_text());
+  generator->run();
+
+  if (generator->getResultString() !=""){
+    entry->set_text(generator->getResultString());
+  }
+  delete generator;
+}
+
+void FunctionGenerator::REVPartialAlignment::MediumHilowSpreadFunButtonClicked(){
+  Gtk::Entry* entry;
+  attributesRefBuilder->get_widget(
+    "REV_MediumHilowSpreadEntry", entry);
+
+  FunctionGenerator* generator =
+    new FunctionGenerator(functionReturnFloat,entry->get_text());
+  generator->run();
+
+  if (generator->getResultString() !=""){
+    entry->set_text(generator->getResultString());
+  }
+  delete generator;
+}
+
+void FunctionGenerator::REVPartialAlignment::MediumGainAllPassFunButtonClicked(){
+  Gtk::Entry* entry;
+  attributesRefBuilder->get_widget(
+    "REV_MediumGainAllPassEntry", entry);
+
+  FunctionGenerator* generator =
+    new FunctionGenerator(functionReturnFloat,entry->get_text());
+  generator->run();
+
+  if (generator->getResultString() !=""){
+    entry->set_text(generator->getResultString());
+  }
+  delete generator;
+}
+
+void FunctionGenerator::REVPartialAlignment::MediumDelayFunButtonClicked(){
+  Gtk::Entry* entry;
+  attributesRefBuilder->get_widget(
+    "REV_MediumDelayEntry", entry);
+
+  FunctionGenerator* generator =
+    new FunctionGenerator(functionReturnFloat,entry->get_text());
+  generator->run();
+
+  if (generator->getResultString() !=""){
+    entry->set_text(generator->getResultString());
+  }
+  delete generator;
+}
+
+
+
+
+void FunctionGenerator::REVPartialAlignment::AdvancedReverbPercentFunButtonClicked(){
+  Gtk::Entry* entry;
+  attributesRefBuilder->get_widget(
+    "REV_AdvancedReverbPercentEntry", entry);
+
+  FunctionGenerator* generator =
+    new FunctionGenerator(functionReturnENV,entry->get_text());
+  generator->run();
+
+  if (generator->getResultString() !=""){
+    entry->set_text(generator->getResultString());
+  }
+  delete generator;
+}
+
+void FunctionGenerator::REVPartialAlignment::AdvancedCombGainListFunButtonClicked(){
+  Gtk::Entry* entry;
+  attributesRefBuilder->get_widget(
+    "REV_AdvancedCombGainListEntry", entry);
+
+  FunctionGenerator* generator =
+    new FunctionGenerator(functionReturnList,entry->get_text());
+  generator->run();
+
+  if (generator->getResultString() !=""){
+    entry->set_text(generator->getResultString());
+  }
+  delete generator;
+}
+
+void FunctionGenerator::REVPartialAlignment::AdvancedLPGainListFunButtonClicked(){
+  Gtk::Entry* entry;
+  attributesRefBuilder->get_widget(
+    "REV_AdvancedLPGainListEntry", entry);
+
+  FunctionGenerator* generator =
+    new FunctionGenerator(functionReturnList,entry->get_text());
+  generator->run();
+
+  if (generator->getResultString() !=""){
+    entry->set_text(generator->getResultString());
+  }
+  delete generator;
+}
+
+
+
+void FunctionGenerator::REVPartialAlignment::AdvancedGainAllPassFunButtonClicked(){
+  Gtk::Entry* entry;
+  attributesRefBuilder->get_widget(
+    "REV_AdvancedGainAllPassEntry", entry);
+
+  FunctionGenerator* generator =
+    new FunctionGenerator(functionReturnFloat,entry->get_text());
+  generator->run();
+
+  if (generator->getResultString() !=""){
+    entry->set_text(generator->getResultString());
+  }
+  delete generator;
+}
+
+void FunctionGenerator::REVPartialAlignment::AdvancedDelayFunButtonClicked(){
+  Gtk::Entry* entry;
+  attributesRefBuilder->get_widget(
+    "REV_AdvancedDelayEntry", entry);
+
+  FunctionGenerator* generator =
+    new FunctionGenerator(functionReturnFloat,entry->get_text());
+  generator->run();
+
+  if (generator->getResultString() !=""){
+    entry->set_text(generator->getResultString());
+  }
+  delete generator;
+}
+
+
 void FunctionGenerator::REVPartialAlignment::insertPartialButtonClicked(){
   // Only use the insert button if in Partials mode
   if (parent->REVApplyFlag==1)
-    parent->REVInsertPartial();
+    parent->REVInsertPartial(this);
 }
 
 
@@ -7662,3 +7762,33 @@ void FunctionGenerator::REVPartialAlignment::removePartialButtonClicked(){
   parent->REVRemovePartial(this);
 }
 
+
+// ZIYUAN CHEN, July 2023 - For inserting a new partial in the middle
+void FunctionGenerator::REVPartialAlignment::refreshPartialNumbersAndLayout(){
+
+  Gtk::HBox* hbox;
+  parent->attributesRefBuilder->get_widget("REVMainHBox", hbox);
+
+  REVPartialAlignment* current = parent->REVPartialAlignments;
+  while (current != NULL) {
+    // if (current->get_parent() == mainVBox) {
+      hbox->remove(*current);
+    // }
+    current = current->next;
+  }
+
+  current = parent->REVPartialAlignments;
+  while (current != NULL) {
+    hbox->pack_start(*current, Gtk::PACK_SHRINK);
+    current = current->next;
+  }
+
+  current = parent->REVPartialAlignments;
+  int counter = 1;
+  while (current != NULL) {
+    current->setNumber(counter);
+    counter++;
+    current = current->next;
+  }
+
+}

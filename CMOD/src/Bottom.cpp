@@ -592,7 +592,6 @@ void Bottom::spatializationStereo(Sound *s,
     } else {
       Pan stereoPan = computeSpatializationStereo(envstr);
       s->setSpatializer(stereoPan);
-      cout << "writing" << endl;
     }
   }
 
@@ -890,7 +889,7 @@ void Bottom::applyFilter(Sound* s){
 
 //----------------------------------------------------------------------------//
 
-// TEJUS: applyReverberation, but for partials
+// TEJUS, ZIYUAN CHEN: applyReverberation, for sound or partials
 void Bottom::applyReverberation(Sound *s, int numPartials) {
   // Sample XML string:
   // <Reverb>
@@ -915,121 +914,278 @@ void Bottom::applyReverberation(Sound *s, int numPartials) {
 
   // Assume this correctly gets <Name>
   string rev_method =  XMLTC(reverbElement->GFEC());
+
+  DOMElement* applyHowElement = reverbElement->GFEC()->GNES();
+  string rev_apply = XMLTC(applyHowElement);
+
+	// Number of parameters varies between methods. But unlike spatialization,
+	// this "everything else" part is NOT enclosed in a <Channel> element;
+	// instead, they are listed in the same level under "Fun"
+  DOMElement* paramsElement = applyHowElement->GNES();
+
   if (rev_method.compare("REV_Simple") == 0) {
-    
-    DOMElement* arg = reverbElement->GFEC()->GNES();
-    // Apply by sound or by partial
-    string applyHow = XMLTC(arg);
-    arg = arg->GNES()->GFEC(); // First <Size>
-    float roomSize;
+    reverberationSimple(s, paramsElement, rev_apply, numPartials);
+  }
+
+  else if (rev_method.compare("REV_Medium") == 0) {
+    reverberationMedium(s, paramsElement, rev_apply, numPartials);
+  }
+
+  else if (rev_method.compare("REV_Advanced") == 0) {
+    reverberationAdvanced(s, paramsElement, rev_apply, numPartials);
+  }
+
+	else {
+    cerr << "WARNING: Invalid method/syntax in reverb!" << endl;
+    cerr << "   Method = " << rev_method << endl;
+  }
+
+}
+
+//----------------------------------------------------------------------------//
+
+void Bottom::reverberationSimple(Sound *s,
+                                 DOMElement* paramsElement,
+                                 string applyHow,
+                                 int numPartials) {
+
+    //     <Sizes>
+    //       <Size><Fun><Name>EnvLib</Name><Env>2</Env><Scale>1.0</Scale></Fun></Size>
+    //       <Size>0.2</Size>
+    //       <Size>0.3</Size>
+    //     </Sizes>
+
+    DOMElement* sizeElement = paramsElement->GFEC(); // First <Size>
     if (applyHow == "SOUND") {
-	// Same as before, but get first <Size>
-        roomSize =
-             utilities->evaluate(XMLTC(arg),(void*)this);
-        Reverb* reverbObj = new Reverb(roomSize, SAMPLING_RATE);
+        Reverb* reverbObj = computeReverberationSimple(sizeElement, -1);
         s->use_reverb(reverbObj);
     } else if (applyHow == "PARTIAL") {
     	// Now apply the reverb to each partial
     	for (int i = 0; i < numPartials; i++) {
-        string eval = XMLTC(arg);
-        if (eval == "") {
-          cout << "WARNING: Fewer partials set in reverb string than configured in spectrum."
-                << "Defaulting partial " << i << " to room size 0" << endl;
-          roomSize = 0.0;
-        } else {
-          roomSize = utilities->evaluate(eval, (void*)this);
-          arg = arg->GNES(); // Next <Size>	
-        }
-
-        Reverb* reverbObj = new Reverb(roomSize, SAMPLING_RATE);
+        Reverb* reverbObj = computeReverberationSimple(sizeElement, i);
         // Add the reverb obj to the partial. It appears that this is already implemented in LASS/src/Partial.cpp.
         s->get(i).use_reverb(reverbObj);
+        sizeElement = sizeElement->GNES();
+        if (!sizeElement) {
+          cerr << "WARNING: reverberationSimple parameters undefined since partial "
+            << i + 1 << "; ignoring" << endl;
+          break;
+        }
 	    }
+      if (sizeElement) {
+        cerr << "WARNING: reverberationSimple parameters defined beyond partial "
+          << numPartials - 1 << "; ignoring" << endl;
+      }
     } else {
     	cout << "WARNING: No <Apply> specifier for reverb, cannot apply." << endl;
     }
-  } else {
-  	// Other methods not implemented as of 3/28/2022
-  }
-
 
 }
 
-void Bottom::applyReverberation(Sound* s) {
+//----------------------------------------------------------------------------//
 
-  DOMElement* reverbElement =
-          (DOMElement*) utilities->evaluateObject("", (void*) this, eventRev);
+/* ZIYUAN CHEN, July 2023 */
+Reverb* Bottom::computeReverberationSimple(DOMElement* sizeElement, int iPartial) {
 
-//this call will return a rev function, just in case users use "select" here.
-//The string here is just a dummy since the callee will find the right rev
-//element  within "this".
+  float roomSize;
 
-  string rev_method =  XMLTC(reverbElement->GFEC());
-
-  if (rev_method.compare("REV_Simple") == 0) {
-    cout << "_input = " << XMLTC(reverbElement->GFEC()->GNES()) << endl;
-    float roomSize =
-         utilities->evaluate(XMLTC(reverbElement->GFEC()->GNES()),(void*)this);
-    Reverb* reverbObj = new Reverb(roomSize, SAMPLING_RATE);
-    s->use_reverb(reverbObj);
-
+  string envstr = XMLTC(sizeElement);
+  if (envstr == "") {
+    cerr << "WARNING: Fewer partials set in reverb string than configured in spectrum. Defaulting ";
+    if (iPartial == -1) cerr << "sound to room size 0" << endl;
+    else cerr << "partial " << iPartial << " to room size 0" << endl;
+    roomSize = 0.0;
+  } else {
+    roomSize = utilities->evaluate(envstr, (void*)this);
   }
-  else if (rev_method.compare("REV_Medium") == 0) {
 
-//    <Fun>
-//      <Name>REV_Medium</Name>
+  Reverb* reverbObj = new Reverb(roomSize, SAMPLING_RATE);
+  return reverbObj;
+
+}
+
+//----------------------------------------------------------------------------//
+
+void Bottom::reverberationMedium(Sound *s,
+                                 DOMElement* paramsElement,
+                                 string applyHow,
+                                 int numPartials) {
+
+//    <Percents>
 //      <Percent>
 //        <Fun><Name>EnvLib</Name><Env>1</Env><Scale>1.0</Scale></Fun>
 //      </Percent>
-//      <Spread>  0.5</Spread>
-//      <AllPass>0.5</AllPass>
-//      <Delay>0.5</Delay>
-//    </Fun>
-    DOMElement* argument = reverbElement->GFEC()->GNES();
+//    </Percents>
+//    <Spreads><Spread>  0.5</Spread></Spreads>
+//    <AllPasses><AllPass>0.5</AllPass></AllPasses>
+//    <Delays><Delay>0.5</Delay></Delays>
+
+  DOMElement* percentElement = paramsElement->GFEC();
+  DOMElement* spreadElement  = paramsElement->GNES()->GFEC();
+  DOMElement* allPassElement = paramsElement->GNES()->GNES()->GFEC();
+  DOMElement* delayElement   = paramsElement->GNES()->GNES()->GNES()->GFEC();
+
+  if (applyHow == "SOUND") {
+
+    Reverb* reverbObj = computeReverberationMedium(percentElement,
+      spreadElement, allPassElement, delayElement, -1);
+    s->use_reverb(reverbObj);
+
+  } else if (applyHow == "PARTIAL") {
+    for (int i = 0; i < numPartials; i++) {
+
+      Reverb* reverbObj = computeReverberationMedium(percentElement,
+        spreadElement, allPassElement, delayElement, i);
+      s->get(i).use_reverb(reverbObj);
+
+      percentElement = percentElement->GNES();
+      spreadElement  = spreadElement->GNES();
+      allPassElement = allPassElement->GNES();
+      delayElement   = delayElement->GNES();
+
+      if (!percentElement || !spreadElement || !allPassElement || !delayElement) {
+        cerr << "WARNING: reverberationMedium parameters undefined since partial "
+          << i + 1 << "; ignoring" << endl;
+        break;
+      }
+    }
+
+    if (percentElement || spreadElement || allPassElement || delayElement) {
+      cerr << "WARNING: reverberationMedium parameters defined beyond partial "
+        << numPartials - 1 << "; ignoring" << endl;
+    }
+
+  } else {
+    cout << "WARNING: No <Apply> specifier for reverb, cannot apply." << endl;
+  }
+
+}
+
+//----------------------------------------------------------------------------//
+
+/* ZIYUAN CHEN, July 2023 */
+Reverb* Bottom::computeReverberationMedium(DOMElement* percentElement,
+  DOMElement* spreadElement, DOMElement* allPassElement,
+  DOMElement* delayElement, int iPartial) {
 
     //second input is percent reverb envelope
+    string envstr = XMLTC(percentElement);
+    if (envstr == "") {
+      cerr << "WARNING: reverberationMedium got empty envelope for ";
+      if (iPartial == -1) cerr << "sound; ignoring" << endl;
+      else cerr << "partial " << iPartial << "; ignoring" << endl;
+      return NULL;
+    }
     Envelope* percent_rev =
-	 (Envelope*) utilities->evaluateObject(XMLTC(argument), this, eventEnv);
-    argument = argument->GNES();
+	 (Envelope*) utilities->evaluateObject(envstr, this, eventEnv);
 
     //3 floats:  hi/low spread, gain all pass, delay
-    float hi_low_spread = utilities->evaluate(XMLTC(argument),this);
-    argument = argument->GNES();
-    float gain_all_pass = utilities->evaluate(XMLTC(argument),this);
-    argument = argument->GNES();
-    float delay = utilities->evaluate(XMLTC(argument),this);
+    float hi_low_spread = utilities->evaluate(XMLTC(spreadElement),this);
+    float gain_all_pass = utilities->evaluate(XMLTC(allPassElement),this);
+    float delay = utilities->evaluate(XMLTC(delayElement),this);
 
+    if (delay == 0) {
+      cerr << "WARNING: reverberationMedium got 0 delay for ";
+      if (iPartial == -1) cerr << "sound; ignoring" << endl;
+      else cerr << "partial " << iPartial << "; ignoring" << endl;
+      return NULL;
+    }
 
     Reverb* reverbObj = new Reverb(percent_rev, hi_low_spread, gain_all_pass,
       delay, SAMPLING_RATE);
-    s->use_reverb(reverbObj);
     delete percent_rev;
+    return reverbObj;
 
-  }
-  else if (rev_method.compare("REV_Advanced") == 0) {
-//	<Fun>
-//	  <Name>REV_Advanced</Name>
+}
+
+//----------------------------------------------------------------------------//
+
+void Bottom::reverberationAdvanced(Sound *s,
+                                   DOMElement* paramsElement,
+                                   string applyHow,
+                                   int numPartials) {
+
+//  <Percents>
 //	  <Percent>
 //	    <Fun><Name>EnvLib</Name><Env>1</Env><Scale>1.0</Scale></Fun>
 //	  </Percent>
-//	  <CombGainList>0.46, 0.48, 0.50, 0.52, 0.53, 0.55</CombGainList>
-//	  <LPGainList>0.05, 0.06, 0.07, 0.05, 0.04, 0.02</LPGainList>
-//	  <AllPass></AllPass>
-//	  <Delay></Delay>
-//	</Fun>
-    DOMElement* argument = reverbElement->GFEC()->GNES();
+//  </Percents>
+//	<CombGainLists><CombGainList>0.46, 0.48, 0.50, 0.52, 0.53, 0.55</CombGainList></CombGainLists>
+//	<LPGainLists><LPGainList>0.05, 0.06, 0.07, 0.05, 0.04, 0.02</LPGainList></LPGainLists>
+//	<AllPasses><AllPass></AllPass></AllPasses>
+//	<Delays><Delay></Delay></Delays>
+
+  DOMElement* percentElement = paramsElement->GFEC();
+  DOMElement* combGainListElement = paramsElement->GNES()->GFEC();
+  DOMElement* lpGainListElement   = paramsElement->GNES()->GNES()->GFEC();
+  DOMElement* allPassElement = paramsElement->GNES()->GNES()->GNES()->GFEC();
+  DOMElement* delayElement   = paramsElement->GNES()->GNES()->GNES()->GNES()->GFEC();
+
+  if (applyHow == "SOUND") {
+
+    Reverb* reverbObj = computeReverberationAdvanced(percentElement,
+      combGainListElement, lpGainListElement, allPassElement, delayElement, -1);
+    s->use_reverb(reverbObj);
+
+  } else if (applyHow == "PARTIAL") {
+    for (int i = 0; i < numPartials; i++) {
+
+      Reverb* reverbObj = computeReverberationAdvanced(percentElement,
+        combGainListElement, lpGainListElement, allPassElement, delayElement, i);
+      s->get(i).use_reverb(reverbObj);
+
+      percentElement = percentElement->GNES();
+      combGainListElement = combGainListElement->GNES();
+      lpGainListElement   = lpGainListElement->GNES();
+      allPassElement = allPassElement->GNES();
+      delayElement   = delayElement->GNES();
+
+      if (!percentElement || !combGainListElement || !lpGainListElement ||
+          !allPassElement || !delayElement) {
+        cerr << "WARNING: reverberationAdvanced parameters undefined since partial "
+          << i + 1 << "; ignoring" << endl;
+        break;
+      }
+    }
+
+    if (percentElement || combGainListElement || lpGainListElement ||
+        allPassElement || delayElement) {
+      cerr << "WARNING: reverberationAdvanced parameters defined beyond partial "
+        << numPartials - 1 << "; ignoring" << endl;
+    }
+
+  } else {
+    cout << "WARNING: No <Apply> specifier for reverb, cannot apply." << endl;
+  }
+
+}
+
+//----------------------------------------------------------------------------//
+
+/* ZIYUAN CHEN, July 2023 */
+Reverb* Bottom::computeReverberationAdvanced(DOMElement* percentElement,
+  DOMElement* combGainListElement, DOMElement* lpGainListElement,
+  DOMElement* allPassElement, DOMElement* delayElement, int iPartial) {
 
     //second input is percent reverb envelope
+    string envstr = XMLTC(percentElement);
+    if (envstr == "") {
+      cerr << "WARNING: reverberationAdvanced got empty envelope for ";
+      if (iPartial == -1) cerr << "sound; ignoring" << endl;
+      else cerr << "partial " << iPartial << "; ignoring" << endl;
+      return NULL;
+    }
     Envelope* percent_rev =
-         (Envelope*) utilities->evaluateObject(XMLTC(argument), this, eventEnv);
-    argument = argument->GNES();
+         (Envelope*) utilities->evaluateObject(envstr, this, eventEnv);
 
 //    //list of EXACTLY 6 comb gain filters
     vector<std::string> stringListC =
-			utilities->listElementToStringVector(argument);
+			utilities->listElementToStringVector(combGainListElement);
     if (stringListC.size() != 6) {
-      cerr << "Error: reverb comb gain list must contain 6 items!" << endl;
-      exit(1);
+      cerr << "WARNING: reverb comb gain list for ";
+      if (iPartial == -1) cerr << "sound must contain 6 items!" << endl;
+      else cerr << "partial " << iPartial << " must contain 6 items!" << endl;
+      return NULL;
     }
     vector<float> comb_gain_list;
 
@@ -1038,14 +1194,14 @@ void Bottom::applyReverberation(Sound* s) {
       comb_gain_list.push_back(num);
     }
 
-    argument = argument->GNES();
-
     //list of EXACTLY 6 lp gain filters
     vector<std::string> stringListG =
-              		utilities->listElementToStringVector(argument);
+              		utilities->listElementToStringVector(lpGainListElement);
     if (stringListG.size() != 6) {
-      cerr << "Error: reverb lp gain list must contain 6 items!" << endl;
-      exit(1);
+      cerr << "WARNING: reverb lp gain list for ";
+      if (iPartial == -1) cerr << "sound must contain 6 items!" << endl;
+      else cerr << "partial " << iPartial << " must contain 6 items!" << endl;
+      return NULL;
     }
     vector<float> lp_gain_list;
 
@@ -1053,24 +1209,25 @@ void Bottom::applyReverberation(Sound* s) {
       float num = (float) utilities ->evaluate(stringListG[i], this);
       lp_gain_list.push_back(num);
     }
-    argument = argument->GNES();
 
     //2 floats:  gain all pass, delay
-    float gain_all_pass = utilities->evaluate(XMLTC(argument),this);
+    float gain_all_pass = utilities->evaluate(XMLTC(allPassElement),this);
+    float delay = utilities->evaluate(XMLTC(delayElement),this);
 
-    argument = argument->GNES();
-    float delay = utilities->evaluate(XMLTC(argument),this);
+    if (delay == 0) {
+      cerr << "WARNING: reverberationAdvanced got 0 delay for ";
+      if (iPartial == -1) cerr << "sound; ignoring" << endl;
+      else cerr << "partial " << iPartial << "; ignoring" << endl;
+      return NULL;
+    }
 
     Reverb* reverbObj = new Reverb(percent_rev,
 			           &comb_gain_list[0],
 				   &lp_gain_list[0],
 				   gain_all_pass, delay, SAMPLING_RATE);
-    s->use_reverb(reverbObj);
-  } else {
-    cerr << "Invalid method/syntax in reverb!" << endl;
-    cerr << "   filename=" << name << endl;
-    exit(1);
- }
+
+    delete percent_rev;
+    return reverbObj;
 
 }
 

@@ -3856,9 +3856,10 @@ void BottomEventModifierAlignment::grayOutModifierFields(ModifierType type) {
   attributesRefBuilder->get_widget("partialResultStringEntry", entry);
   entry->set_sensitive(false);
 
+  attributesRefBuilder->get_widget("groupNameEntry", entry);
+  entry->set_sensitive(true);
+
   if (type == modifierTremolo|| type == modifierVibrato) {
-    attributesRefBuilder->get_widget("groupNameEntry", entry);
-    entry->set_sensitive(true);
 
     attributesRefBuilder->get_widget("probablityEnvelopeEntry", entry);
     entry->set_sensitive(true);
@@ -3881,8 +3882,6 @@ void BottomEventModifierAlignment::grayOutModifierFields(ModifierType type) {
     attributesRefBuilder->get_widget("DirectionEntry", entry);
     entry->set_sensitive(false);
   } else if (type == modifierAmptrans || type == modifierFreqtrans) {
-    attributesRefBuilder->get_widget("groupNameEntry", entry);
-    entry->set_sensitive(true);
 
     attributesRefBuilder->get_widget("probablityEnvelopeEntry", entry);
     entry->set_sensitive(true);
@@ -3905,8 +3904,6 @@ void BottomEventModifierAlignment::grayOutModifierFields(ModifierType type) {
     attributesRefBuilder->get_widget("DirectionEntry", entry);
     entry->set_sensitive(false);
   } else if (type == modifierDetune) {
-    attributesRefBuilder->get_widget("groupNameEntry", entry);
-    entry->set_sensitive(true);
 
     attributesRefBuilder->get_widget("probablityEnvelopeEntry", entry);
     entry->set_sensitive(false);
@@ -3929,8 +3926,6 @@ void BottomEventModifierAlignment::grayOutModifierFields(ModifierType type) {
     attributesRefBuilder->get_widget("DirectionEntry", entry);
     entry->set_sensitive(true);
   } else if (type == modifierGlissando) {
-    attributesRefBuilder->get_widget("groupNameEntry", entry);
-    entry->set_sensitive(false);
 
     attributesRefBuilder->get_widget("probablityEnvelopeEntry", entry);
     entry->set_sensitive(true);
@@ -3953,8 +3948,6 @@ void BottomEventModifierAlignment::grayOutModifierFields(ModifierType type) {
     attributesRefBuilder->get_widget("DirectionEntry", entry);
     entry->set_sensitive(false);
   } else if (type == modifierWave_type) {
-    attributesRefBuilder->get_widget("groupNameEntry", entry);
-    entry->set_sensitive(true);
 
     attributesRefBuilder->get_widget("probablityEnvelopeEntry", entry);
     entry->set_sensitive(true);

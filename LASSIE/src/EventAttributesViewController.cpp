@@ -3961,7 +3961,7 @@ void BottomEventModifierAlignment::grayOutModifierFields(ModifierType type) {
     entry->set_sensitive(true);
 
     attributesRefBuilder->get_widget("rateValueEnvelopeEntry", entry);
-    entry->set_sensitive(true);
+    entry->set_sensitive(false);
 
     attributesRefBuilder->get_widget("widthEnvelopeEntry", entry);
     entry->set_sensitive(false);

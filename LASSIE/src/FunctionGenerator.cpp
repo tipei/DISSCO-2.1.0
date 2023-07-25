@@ -552,6 +552,16 @@ FunctionGenerator::FunctionGenerator(
 
 
   }
+
+    // ZIYUAN CHEN, July 2023 - Function generator for "Modifier Group"
+    else if (_returnType ==functionReturnMGP){
+    Gtk::TreeModel::Row row = *(functionListTreeModel->append());
+    // this is based on Sever's request
+    row[functionListColumns.m_col_id] = functionSelect;
+    row[functionListColumns.m_col_name] = "Select";
+
+
+  }
   else if (_returnType ==functionReturnPAT){
     Gtk::TreeModel::Row row = *(functionListTreeModel->append());
     row[functionListColumns.m_col_id] = functionMakePattern;
@@ -4250,7 +4260,8 @@ void FunctionGenerator::selectEntryChanged(){
     stringbuffer = stringbuffer + current->toString();
     current = current ->next;
     while (current != NULL) {
-      stringbuffer = stringbuffer + ", " + current->toString();
+      // ZIYUAN CHEN, July 2023 - Remove the space from ", "
+      stringbuffer = stringbuffer + "," + current->toString();
       current = current->next;
     }
   }

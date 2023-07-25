@@ -565,6 +565,8 @@ public:
     virtual void  setReverb(std::string _string){}
     virtual std::string  getFilter(){return "";}
     virtual void  setFilter(std::string _string){}
+    virtual std::string  getModifierGroup(){return "";}
+    virtual void  setModifierGroup(std::string _string){}
     virtual EventBottomModifier*  getModifiers(){return NULL;}
     virtual EventBottomModifier* addModifier(){return NULL;}
     virtual void  removeModifier(EventBottomModifier* _modifier){}
@@ -629,6 +631,8 @@ public:
     void  setReverb(std::string _string);
     std::string  getFilter();
     void  setFilter(std::string _string);
+    std::string  getModifierGroup();
+    void  setModifierGroup(std::string _string);
     EventBottomModifier* getModifiers();
     EventBottomModifier* addModifier();
     void removeModifier(EventBottomModifier* _modifier);
@@ -649,6 +653,7 @@ public:
     std::string spatialization;
     std::string reverb;
     std::string filter;
+    std::string modifierGroup; // ZIYUAN CHEN, July 2023
 
 
 
@@ -843,6 +848,7 @@ private:
   std::string childEventDefAttackSieve;
   std::string childEventDefDurationSieve;
 
+  std::string modifierGroup; // ZIYUAN CHEN, July 2023
   std::string filter;
   std::string reverb;
   std::string spatialization;

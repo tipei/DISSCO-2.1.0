@@ -257,6 +257,7 @@ public:
   void BSSpatializationButtonClicked();
   void BSReverbButtonClicked();
   void BSFilterButtonClicked();
+  void BSModifierGroupButtonClicked(); // ZIYUAN CHEN, July 2023
   void BSWellTemperedButtonClicked();
   void BSFunFreqButton1Clicked();
   void BSFunFreqButton2Clicked();

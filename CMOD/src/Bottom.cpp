@@ -62,6 +62,7 @@ Bottom::Bottom(DOMElement* _element,
     <Spatialization>5</Spatialization>
     <Reverb>6</Reverb>
     <Filter>f</Filter>
+    <ModifierGroup></ModifierGroup>
     <Modifiers>
     </Modifiers>
   </ExtraInfo>
@@ -90,8 +91,10 @@ Bottom::Bottom(DOMElement* _element,
     filterElement = loudnessElement->GNES()->GNES()->GNES();
   }
 
+  /* ZIYUAN CHEN, July 2023 */
+  modifierGroupElement = loudnessElement->GNES()->GNES()->GNES()->GNES();
 
-  modifiersElement = loudnessElement->GNES()->GNES()->GNES()->GNES();
+  modifiersElement = loudnessElement->GNES()->GNES()->GNES()->GNES()->GNES();
 
 }
 
@@ -1234,8 +1237,7 @@ Reverb* Bottom::computeReverberationAdvanced(DOMElement* percentElement,
 //-----------------------------------------------------------------------------/
 
 void Bottom::applyModifiers(Sound *s, int numPartials) {
-  vector<Modifier> modNoDep;  //mods without dependencies
-  map<string, vector<Modifier> > modMutEx; // map mutex group names to the mods
+  map<string, vector<Modifier> > modGroups; // ZIYUAN CHEN, July 2023 - map group names to the mods
 
 
   DOMElement* modifiersIncludingAncestorsElement = (DOMElement*) modifiersElement->cloneNode(true);
@@ -1356,16 +1358,18 @@ float vel;
         delete env;
       }
 
-      arg = widthElement->GNES();//group name (MUT_EX)
-      string mutExGroup = XMLTC(arg);
-      if (mutExGroup == "") {
-        // not MUT_EX
-        modNoDep.push_back(newMod);
-      } else {
-        // mutually exclusive
-        modMutEx[mutExGroup].push_back(newMod);
+      /* ZIYUAN CHEN, July 2023 - Categorizing a modifier into groups */
+      arg = velocityElement->GNES();//group name
+      std::stringstream ss(XMLTC(arg));
+      std::string groupName;
+      while (std::getline(ss, groupName, ',')) {
+        /* strip leading and trailing whitespaces to be compatible with
+           <List>Name1, Name2, Name3</List> in Select - RandomInt function */
+        groupName.erase(0, groupName.find_first_not_of(' '));
+        groupName.erase(groupName.find_last_not_of(' ') + 1);
+        modGroups[groupName].push_back(newMod);
+        cout << "Added modifier to group " << groupName << endl;
       }
-      newMod.applyModifier(s);
       delete probEnv;
     }
     else if (applyHow == "PARTIAL") {
@@ -1423,7 +1427,15 @@ float vel;
         
 
 	// delete probEnv;
-        modNoDep.push_back(newPartialMod);
+        arg = velocityElement->GNES();//group name
+        std::stringstream ss(XMLTC(arg));
+        std::string groupName;
+        while (std::getline(ss, groupName, ',')) {
+          groupName.erase(0, groupName.find_first_not_of(' '));
+          groupName.erase(groupName.find_last_not_of(' ') + 1);
+          modGroups[groupName].push_back(newPartialMod);
+          cout << "Added modifier to group " << groupName << endl;
+        }
         envelopeElement = envelopeElement->GNES();
       }
     }
@@ -1431,33 +1443,54 @@ float vel;
     modifierElement = modifierElement->GNES(); // go to the next MOD in the list
   } // end of the main while loop
 
-  // go through the non-exclusive mods
-  
-  for (int i = 0; i < modNoDep.size(); i++) {
+  /* ZIYUAN CHEN, July 2023 -
+    Here, we evaluate the target "Modifier Group" name to be applied.
+    The user may put a string (e.g., "Apple") or a function in this field.
+    The function is always a random selection between strings with the following syntax:
+      <Fun>
+        <Name>Select</Name>
+        <List>Apple,Boy,Cat</List>
+        <Index>
+          <Fun>
+            <Name>RandomInt</Name>
+            <LowBound>0</LowBound>
+            <HighBound>2</HighBound>
+          </Fun>
+        </Index>
+      </Fun>
+    Since utilities->evaluate() returns a double everywhere else (and correspondingly,
+      <List> holds numbers instead of strings), a special mechanism is implemented here
+      to (1) evaluate <Index> as a "RandomInt" function and (2) manually extract the
+      desired <List> element, instead of rewriting utilities->evaluate().
+  */
 
-    if (modNoDep[i].willOccur(checkPoint)) {
+  string targetModGroupName = XMLTC(modifierGroupElement);
 
-      modNoDep[i].applyModifier(s);
+  if (targetModGroupName.find("<Fun>") != string::npos) { // evaluate if it's function string
 
+    DOMElement* modifierGroupListElement = modifierGroupElement->GFEC()->GFEC()->GNES(); // <List>
+    DOMElement* modifierGroupIndexFunElement = modifierGroupListElement->GNES(); // <Index>
+    int targetModGroupIndex = (int)utilities->evaluate(XMLTC(modifierGroupIndexFunElement), this);
+
+    std::stringstream ss(XMLTC(modifierGroupListElement));
+    while (std::getline(ss, targetModGroupName, ',') && targetModGroupIndex > 0) {
+      targetModGroupName.erase(0, targetModGroupName.find_first_not_of(' '));
+      targetModGroupName.erase(targetModGroupName.find_last_not_of(' ') + 1);
+      targetModGroupIndex--;
     }
+
   }
 
-
-  // go through the exclusive mods
-  map<string, vector<Modifier> >::iterator iter = modMutEx.begin();
-  while (iter != modMutEx.end()) {
-    vector<Modifier> modGroup = (*iter).second;
-
-    //go through the group, and apply 1 at most
-    bool appliedMod = false;
-    for (int i = 0; i < modGroup.size() && !appliedMod; i++) {
-      if (modGroup[i].willOccur(checkPoint)) {
-        modGroup[i].applyModifier(s);
-        appliedMod = true;
-      }
+  // ZIYUAN CHEN, July 2023 - apply the specified one (1) group of modifiers
+  if (modGroups.find(targetModGroupName) != modGroups.end()) {
+    vector<Modifier> modGroup = modGroups[targetModGroupName];
+    for (int i = 0; i < modGroup.size(); i++) {
+      modGroup[i].applyModifier(s);
     }
-    iter ++;
+  } else {
+    cerr << "WARNING: Specified modifier group " << targetModGroupName << " not found!" << endl;
   }
+
   //delete modifiersIncludingAncestorsElement;
 }
 

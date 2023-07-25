@@ -94,6 +94,7 @@ typedef enum {
   functionReturnPAT,
   funcitonReturnMEA,
   functionReturnFIL, // added for filter object
+  functionReturnMGP, // ZIYUAN CHEN, July 2023 - added for "Modifier Group"
   functionReturnSPE, //added for generating spectrum from distance
   functionReturnIntList,
   functionReturnFloatList,

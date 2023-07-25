@@ -88,6 +88,8 @@ IEvent::IEvent(){
   childEventDefAttackSieve = "";
   childEventDefDurationSieve = "";
 
+  // ZIYUAN CHEN, July 2023
+  modifierGroup = "";
   filter = "";
   reverb = "";
   spatialization = "";
@@ -868,6 +870,14 @@ std::string  IEvent::BottomEventExtraInfo::getFilter(){
 }
 void  IEvent::BottomEventExtraInfo::setFilter(std::string _string){
   filter = _string;
+}
+
+// ZIYUAN CHEN, July 2023
+std::string  IEvent::BottomEventExtraInfo::getModifierGroup(){
+  return modifierGroup;
+}
+void  IEvent::BottomEventExtraInfo::setModifierGroup(std::string _string){
+  modifierGroup = _string;
 }
 
 void IEvent::BottomEventExtraInfo::setChildTypeFlag(int _type){
@@ -1975,6 +1985,7 @@ IEvent::BottomEventExtraInfo::BottomEventExtraInfo(
   loudness = _original->loudness;
   spatialization = _original->spatialization;
   reverb = _original->reverb;
+  modifierGroup = _original->modifierGroup; // ZIYUAN CHEN, July 2023
 
 
   if (_original->modifiers == NULL){
@@ -2477,6 +2488,7 @@ string IEvent::getXMLTHMLB(){
     "      <Spatialization>" + spatialization + "</Spatialization>\n"
     "      <Reverb>" + reverb + "</Reverb>\n"
     "      <Filter>" + filter + "</Filter>\n" ;
+    // ZIYUAN CHEN, July 2023 - <ModifierGroup> only appears in Bottom events
 
 
     if (eventType == eventBottom){
@@ -2510,6 +2522,7 @@ string IEvent::getXMLTHMLB(){
         "        <Spatialization>" + extraInfo->getSpatialization() + "</Spatialization>\n"
         "        <Reverb>" + extraInfo->getReverb() + "</Reverb>\n"
         "        <Filter>" + extraInfo->getFilter() + "</Filter>\n"
+        "        <ModifierGroup>" + extraInfo->getModifierGroup() + "</ModifierGroup>\n"
           + modifiersbuffer +
         "      </ExtraInfo>\n";
       stringbuffer = stringbuffer + bottomBuffer;
@@ -3005,7 +3018,16 @@ IEvent::BottomEventExtraInfo::BottomEventExtraInfo(int _childTypeFlag, DOMElemen
   if (temp != NULL){ // in case there is no <Filter></Filter>
     filter = getFunctionString(thisElement);
 
-    modifiers = buildModifiersFromDOMElement(thisElement->getNextElementSibling()->getFirstElementChild());
+    // ZIYUAN CHEN, July 2023 - A new sibling may be present before <Modifier>
+    DOMElement* temp2 = temp->getNextElementSibling();
+    if (temp2 != NULL){
+      modifierGroup = getFunctionString(temp);
+      modifiers = buildModifiersFromDOMElement(temp2->getFirstElementChild());
+    }
+    else {
+      modifierGroup = "";
+      modifiers = buildModifiersFromDOMElement(temp->getFirstElementChild());
+    }
   }
   else {
     filter = "";

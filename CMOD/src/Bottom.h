@@ -58,6 +58,9 @@ class Bottom : public Event {
     DOMElement* frequencyElement;
     DOMElement* loudnessElement;
     DOMElement* modifiersElement;
+    /* ZIYUAN CHEN, July 2023 - The "Modifier Group" is only present
+       in Bottom events, so this element doesn't appear in Event.h */
+    DOMElement* modifierGroupElement;
     DOMElement* ancestorModifiersElement;
 
     //Current partial during the processing of the event

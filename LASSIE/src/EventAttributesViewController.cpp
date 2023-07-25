@@ -440,6 +440,11 @@ EventAttributesViewController::EventAttributesViewController(
     "BottomSubAttributesFilterButton", button);
   button->signal_clicked().connect(sigc::mem_fun(*this, & EventAttributesViewController::BSFilterButtonClicked));
 
+  // ZIYUAN CHEN, July 2023
+  attributesRefBuilder->get_widget(
+    "BottomSubAttributesModifierGroupButton", button);
+  button->signal_clicked().connect(sigc::mem_fun(*this, & EventAttributesViewController::BSModifierGroupButtonClicked));
+
       attributesRefBuilder->get_widget(
     "BottomSubAttributesWellTemperedButto", button);
   button->signal_clicked().connect(sigc::mem_fun(*this, & EventAttributesViewController::BSWellTemperedButtonClicked));
@@ -667,6 +672,11 @@ EventAttributesViewController::EventAttributesViewController(
   entry->signal_changed().connect(sigc::mem_fun(*this, & EventAttributesViewController::modified));
   attributesRefBuilder->get_widget(
     "BottomSubAttributesFilterEntry", entry);
+  entry->signal_changed().connect(sigc::mem_fun(*this, & EventAttributesViewController::modified));
+
+  // ZIYUAN CHEN, July 2023
+  attributesRefBuilder->get_widget(
+    "BottomSubAttributesModifierGroupEntry", entry);
   entry->signal_changed().connect(sigc::mem_fun(*this, & EventAttributesViewController::modified));
 
   attributesRefBuilderSound->get_widget(
@@ -1188,6 +1198,11 @@ void EventAttributesViewController::saveCurrentShownEventData(){
       attributesRefBuilder->get_widget(
         "BottomSubAttributesFilterEntry", entry);
       currentlyShownEvent->getEventExtraInfo()->setFilter(entry->get_text());
+
+      // ZIYUAN CHEN, July 2023
+      attributesRefBuilder->get_widget(
+        "BottomSubAttributesModifierGroupEntry", entry);
+      currentlyShownEvent->getEventExtraInfo()->setModifierGroup(entry->get_text());
 
     }// end handle BottomExtraInfo
 
@@ -2214,6 +2229,12 @@ void EventAttributesViewController::showCurrentEventData(){
         	entry->set_text(extraInfo->getFilter());
         	entry->set_sensitive(true);
 
+          // ZIYUAN CHEN, July 2023
+        	attributesRefBuilder->get_widget(
+          	"BottomSubAttributesModifierGroupEntry", entry);
+        	entry->set_text(extraInfo->getModifierGroup());
+        	entry->set_sensitive(true);
+
         }
         else {
 
@@ -2229,6 +2250,12 @@ void EventAttributesViewController::showCurrentEventData(){
 
         	attributesRefBuilder->get_widget(
           	"BottomSubAttributesFilterEntry", entry);
+        	entry->set_text("");
+        	entry->set_sensitive(false);
+
+          // ZIYUAN CHEN, July 2023
+        	attributesRefBuilder->get_widget(
+          	"BottomSubAttributesModifierGroupEntry", entry);
         	entry->set_text("");
         	entry->set_sensitive(false);
 
@@ -4752,6 +4779,26 @@ void EventAttributesViewController::BSFilterButtonClicked(){
     "BottomSubAttributesFilterEntry", entry);
   FunctionGenerator* generator =
     new FunctionGenerator(functionReturnFIL,entry->get_text());
+  int result = generator->run();
+  if (generator->getResultString() !=""&& result ==0){
+      entry->set_text(generator->getResultString());
+    }
+  delete generator;
+
+}
+
+// ZIYUAN CHEN, July 2023
+void EventAttributesViewController::BSModifierGroupButtonClicked(){
+
+	if (currentlyShownEvent->getEventExtraInfo()->getChildTypeFlag()!= 0){
+		return;
+	}
+
+  Gtk::Entry* entry;
+  attributesRefBuilder->get_widget(
+    "BottomSubAttributesModifierGroupEntry", entry);
+  FunctionGenerator* generator =
+    new FunctionGenerator(functionReturnMGP,entry->get_text());
   int result = generator->run();
   if (generator->getResultString() !=""&& result ==0){
       entry->set_text(generator->getResultString());

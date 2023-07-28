@@ -88,7 +88,7 @@ time to change this.
     delete cap_;
   }
 }
-
+// This function is rewrote by xiaoyi han
 bool Section::InsertNote(Note* n) {
   if (n->rootExactAncestor != time_signature_.tempo_.getRootExactAncestor()) {
     return false; // Note does not belong to this section.
@@ -135,54 +135,70 @@ bool Section::InsertNote(Note* n) {
       section_[bar_num].insert(iter, n);
       return true;
     }
+    // if there is overlap
     else if(cur->start_t == n->start_t){
+      // for the same start time
       if(cur->end_t == n->end_t){
+        // if the end time is still the same
         cur->split = n->split;
+        // merge the modifiers together
         cur->mergeModifiers(n->modifiers_out);
-        cur->pitch_out = cur->pitch_out.substr(0, cur->pitch_out.length() - 1) + n->pitch_out.substr(1);
+        // merge the notes together: Ex: <c'> + <e'> -> <c'e'>
+        cur->pitch_out = cur->pitch_out.substr(0, cur->pitch_out.length() - 1) + " " + n->pitch_out.substr(1);
         return true;
       }
       else if (cur->end_t > n->end_t){
+        // insertnote has the shorter end time
+        // merge the overlap part and insert the left of existnode again
         cur->start_t = n->end_t;
         n->split = 1;
         n->mergeModifiers(cur->modifiers_out);
-        n->pitch_out = cur->pitch_out.substr(0, cur->pitch_out.length() - 1) + n->pitch_out.substr(1);
+        n->pitch_out = cur->pitch_out.substr(0, cur->pitch_out.length() - 1) + " " + n->pitch_out.substr(1);
         InsertNote(n);
         return true;
       }
       else if(cur->end_t < n->end_t){
         if(cur->start_t != cur->end_t){
+          // insertnote has the longer end time and ensure they have the overlap part.
+          // merge the overlap part, and insert the left of insernote 
           cur->split = 1;
           cur->mergeModifiers(n->modifiers_out);
-          cur->pitch_out = cur->pitch_out.substr(0, cur->pitch_out.length() - 1) + n->pitch_out.substr(1);
+          cur->pitch_out = cur->pitch_out.substr(0, cur->pitch_out.length() - 1) + " " + n->pitch_out.substr(1);
           n->start_t = cur->end_t;
         }
       }
     }
     else if ((cur->end_t > n->start_t) && (cur->start_t < n->start_t)){
+      // insertnode has later start time
       if(cur->end_t == n->end_t){
+        // if they have the same end time.
+        // shorten the existnode and merge the overlap part
         cur->split =1;
         cur->end_t = n->start_t;
         n->mergeModifiers(cur->modifiers_out);
-        n->pitch_out = cur->pitch_out.substr(0, cur->pitch_out.length() - 1) + n->pitch_out.substr(1);
+        n->pitch_out = cur->pitch_out.substr(0, cur->pitch_out.length() - 1) + " " + n->pitch_out.substr(1);
       }
       else if (cur->end_t > n->end_t){
+        // if insertnode ends early
+        // shorten the existnode, merge the overlap part, and cut the unoverlap part
+        // to a new note and insert them. 
         Note* sec_chord = new Note(*cur);
         cur->end_t = n->start_t;
         cur->split = 1;
         sec_chord->start_t = n->end_t;
         n->split = 1;
         n->mergeModifiers(cur->modifiers_out);
-        n->pitch_out = cur->pitch_out.substr(0, cur->pitch_out.length() - 1) + n->pitch_out.substr(1);
+        n->pitch_out = cur->pitch_out.substr(0, cur->pitch_out.length() - 1) + " " + n->pitch_out.substr(1);
         InsertNote(sec_chord);
         InsertNote(n);
         return true;
       }
       else if (cur->end_t < n->end_t){
+        // if insertnode ends later.
         Note* sec_chord = new Note(*n);
         sec_chord->end_t = cur->end_t;
         sec_chord->mergeModifiers(cur->modifiers_out);
-        sec_chord->pitch_out = cur->pitch_out.substr(0, cur->pitch_out.length() - 1) + n->pitch_out.substr(1);
+        sec_chord->pitch_out = cur->pitch_out.substr(0, cur->pitch_out.length() - 1) + " " + n->pitch_out.substr(1);
         sec_chord->split = 1;
         cur->end_t = sec_chord->start_t;
         cur->split = 1;
@@ -193,16 +209,19 @@ bool Section::InsertNote(Note* n) {
       }
     }
     else if ((cur->start_t > n->start_t) && (cur->start_t < n->end_t)){
+      // insertnode has earlier start time
       if(cur->end_t == n->end_t){
+        // if they ends at the same time
         cur->split = n->split;
         cur->mergeModifiers(n->modifiers_out);
-        cur->pitch_out = cur->pitch_out.substr(0, cur->pitch_out.length() - 1) + n->pitch_out.substr(1);
+        cur->pitch_out = cur->pitch_out.substr(0, cur->pitch_out.length() - 1) + " " + n->pitch_out.substr(1);
         n->end_t = cur->start_t;
         n->split = 1;
         InsertNote(n);
         return true;
       }
       else if(cur->end_t > n->end_t){
+        // insertnode ends early
         Note* sec_chord = new Note(*cur);
         sec_chord->start_t = n->end_t;
         cur->end_t = n->end_t;
@@ -212,6 +231,7 @@ bool Section::InsertNote(Note* n) {
         return true;
       }
       else if(cur->end_t < n->end_t){
+        // insertnode ends later
         Note* sec_chord = new Note(*n);
         sec_chord->start_t = cur->end_t;
         n->end_t = cur->end_t;
@@ -223,6 +243,7 @@ bool Section::InsertNote(Note* n) {
       
     }
   }
+  // insert the node
   section_[bar_num].insert(iter, n);
   return true;
 } 
@@ -585,6 +606,7 @@ int Section::FillCurrentTupletDur(Note* current_note,
     if ((dur > tuplet_dur || current_note->split == 1) && 
        (current_note->pitch_out != "r")) {
       current_note->type_out += "~ ";
+      current_note->split = 0;
     } else {
       current_note->type_out += " ";
     }
@@ -595,6 +617,7 @@ int Section::FillCurrentTupletDur(Note* current_note,
     NoteInTuplet(current_note, prev_tuplet, tuplet_dur);
     if ((dur > tuplet_dur || current_note->split == 1) && (current_note->pitch_out != "r")) {
       current_note->type_out += "~ ";
+      current_note->split = 0;
     } else {
       // current_note->loudness_and_modifiers();
     }
@@ -631,13 +654,15 @@ int Section::FillCompleteBeats(Note* current_note, int remaining_dur) {
     // LoudnessMark(current_note);
 
     if (mainDur > 0 || remainder > 0) {
-      if (current_note->pitch_out != "r") {
+      if ((current_note->pitch_out != "r") && (current_note->split == 1)){
         current_note->type_out += "~ ";
+        current_note->split = 0;
       }
     } else {
       if (current_note->split == 1) {
         if (current_note->pitch_out != "r") {
           current_note->type_out += "~ ";
+          current_note->split = 0;
         }
         current_note->split = 0;
       }
@@ -682,8 +707,9 @@ int Section::CreateTupletWithRests(Note* current_note,
     NoteInTuplet(current_note, tuplet_type, remaining_dur);
     tuplet_dur = time_signature_.beat_edus_ - remaining_dur;
   }
-  if(current_note->split == 1){
+  if((current_note->split == 1)&& (current_note->pitch_out != "r")){
     current_note->type_out += "~ ";
+    current_note->split = 0;
   }
   *prev_tuplet = tuplet_type;
   return tuplet_dur;
@@ -715,8 +741,9 @@ void Section::NoteInTuplet(Note* current_note, int tuplet_type, int duration) {
       power_of_2--;
     }
 
-    if ((beat > 0) && (current_note->pitch_out != "r")) {
+    if ((beat > 0) && (current_note->pitch_out != "r") && (current_note->split == 1)) {
       current_note->type_out += "~ ";
+      current_note->split = 0;
     } else {
       current_note->type_out += " ";
     }

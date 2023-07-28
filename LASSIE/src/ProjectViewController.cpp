@@ -173,10 +173,13 @@ ProjectViewController::ProjectViewController(MainWindow* _mainWindow){
   sampleRate    = "44100";
   sampleSize    = "16";
   numOfThreads  = "1";
+  numOfStaff    = "1";
   topEvent      = "0";
+  // staffEntryNum = "0";
 //	measure       = "0.6";
   synthesis     = true;
 	score 				= false;
+  grandStaff    = false;
 
   sharedPointers = new SharedPointers();
       sharedPointers->mainWindow = _mainWindow;
@@ -311,10 +314,12 @@ ProjectViewController::ProjectViewController(
   sampleRate    = "44100";
   sampleSize    = "16";
   numOfThreads  = "1";
+  numOfStaff    = "1";
   topEvent      = "0";
 //	measure       = "0.6";
   synthesis     = true;
 	score 				= false;
+  grandStaff    = false;
   outputParticel= false;
 
 
@@ -1168,6 +1173,9 @@ void ProjectViewController::setProperties (){
   entry->set_text(duration);
   entry->grab_focus();
 
+  refBuilder->get_widget("numberOfStaffEntry", entry);
+  entry->set_text(numOfStaff);
+
   refBuilder->get_widget("channelEntry", entry);
   entry->set_text(numOfChannels);
 
@@ -1191,9 +1199,13 @@ void ProjectViewController::setProperties (){
 
   button->set_active(synthesis);
 
-	refBuilder->get_widget("ScoreCheckBox", button);
-
+  refBuilder->get_widget("ScoreCheckBox",button);
+  
   button->set_active(score);
+
+  refBuilder->get_widget("GrandStaffPrint",button);
+  
+  button->set_active(grandStaff);
 
   refBuilder->get_widget("generateParticelCheckBox", button);
 
@@ -1210,6 +1222,9 @@ void ProjectViewController::setProperties (){
 
     refBuilder->get_widget("durationEntry", entry);
     duration = entry->get_text();
+
+    refBuilder->get_widget("numberOfStaffEntry", entry);
+    numOfStaff = entry->get_text();
 
     refBuilder->get_widget("channelEntry", entry);
     numOfChannels = entry->get_text();
@@ -1229,15 +1244,17 @@ void ProjectViewController::setProperties (){
 		// refBuilder->get_widget("measureEntry", entry);
 		// measure = entry->get_text();
 
+
     refBuilder->get_widget("synthesisCheckBox", button);
-
     synthesis = button->get_active();
-		refBuilder->get_widget("ScoreCheckBox", button);
 
+		refBuilder->get_widget("ScoreCheckBox", button);
     score = button->get_active();
 
-    refBuilder->get_widget("generateParticelCheckBox", button);
+    refBuilder->get_widget("GrandStaffPrint", button);
+    grandStaff = button->get_active();
 
+    refBuilder->get_widget("generateParticelCheckBox", button);
     outputParticel =button->get_active();
 
   }
@@ -1313,17 +1330,32 @@ void ProjectViewController::refreshProjectDotDat(){
   else{
     stringbuffer = "soundSynthesis = FALSE;\n";
   }
-
   fputs(stringbuffer.c_str(),dat);
 
 	if (score){
-    stringbuffer = "ScorePrint = TRUE;\n";
+    stringbuffer = "scorePrint = TRUE;\n";
   }
   else{
-    stringbuffer = "ScorePrint = FALSE;\n";
+    stringbuffer = "scorePrint = FALSE;\n";
   }
-
   fputs(stringbuffer.c_str(),dat);
+
+	if (grandStaff){
+    stringbuffer = "grandStaffPrint = TRUE;\n";
+  }
+  else{
+    stringbuffer = "grandStaffPrint = FALSE;\n";
+  }
+  fputs(stringbuffer.c_str(),dat);
+
+  stringbuffer = "numStaff = " + numOfStaff + ";\n";
+  yy_scan_string( stringbuffer.c_str());//set parser buffer
+  if (yyparse()==0){
+    fputs(stringbuffer.c_str(),dat);
+  }
+  else {
+    cout<<"illegal numStaff value!"<<endl;
+  }
 
   stringbuffer = "numChannels = " + numOfChannels + ";\n";
   yy_scan_string( stringbuffer.c_str());//set parser buffer
@@ -1397,7 +1429,7 @@ void ProjectViewController::refreshProjectDotDat(){
 
   fputs(stringbuffer.c_str(),dat);
 
-	if (score){
+  if (score){
     stringbuffer = "LASSIESCOREPRINT = `TRUE`;\n";
   }
   else{
@@ -1405,6 +1437,20 @@ void ProjectViewController::refreshProjectDotDat(){
   }
 
   fputs(stringbuffer.c_str(),dat);
+
+	if (grandStaff){
+    stringbuffer = "LASSIEGRANDSTAFFPRINT = `TRUE`;\n";
+  }
+  else{
+    stringbuffer = "LASSIEGRANDSTAFFPRINT = `FALSE`;\n";
+  }
+
+  fputs(stringbuffer.c_str(),dat);
+
+  buffer2 = (numOfStaff == "")? "": numOfStaff;
+  stringbuffer = "LASSIENUMSTAFFS = `" + buffer2 + "`;\n";
+  fputs(stringbuffer.c_str(),dat);
+
 
   buffer2 = (numOfChannels == "")? "": numOfChannels;
   stringbuffer = "LASSIENUMCHANNELS = `" + buffer2 + "`;\n";
@@ -1483,6 +1529,12 @@ void ProjectViewController::save(){
 	stringBuffer = score? "    <Score>True</Score>\n":"    <Score>False</Score>\n";
   fputs(stringBuffer.c_str(),file);
 
+  stringBuffer = grandStaff ? "    <GrandStaff>True</GrandStaff>\n":"    <GrandStaff>False</GrandStaff>\n";
+  fputs(stringBuffer.c_str(),file);
+
+  stringBuffer = "    <NumberOfStaff>"+ numOfStaff + "</NumberOfStaff>\n";
+  fputs(stringBuffer.c_str(),file);
+
   stringBuffer = "    <NumberOfChannels>"+ numOfChannels + "</NumberOfChannels>\n";
   fputs(stringBuffer.c_str(),file);
 
@@ -1503,6 +1555,8 @@ void ProjectViewController::save(){
 
   fputs("  </ProjectConfiguration>\n", file);
 
+
+  //I GOTTA EDIT HERE
   fputs("  <NoteModifiers>\n", file);
   fputs("    <DefaultModifiers>",file);
 
@@ -1874,15 +1928,18 @@ ProjectViewController::ProjectViewController(
   element = element->getNextElementSibling();
   topEvent = IEvent::getFunctionString(element);
 
-	//measure
-   element = element->getNextElementSibling();
-   measure = IEvent::getFunctionString(element);
-	 //if measure !=0,there is a measure entry in .dissco file, parse next element
-	 //else, take the previous parse as the one for piece start time
-	 if (measure!="0"){
-		 //piece start time is skipped (it's zero, hardcoded)
-		 element = element->getNextElementSibling();
-	 }
+	//pieceStartTime
+  element = element->getNextElementSibling();
+
+  //
+  //  element = element->getNextElementSibling();
+  //  measure = IEvent::getFunctionString(element);
+	//  //if measure !=0,there is a measure entry in .dissco file, parse next element
+	//  //else, take the previous parse as the one for piece start time
+	//  if (measure!="0"){
+	// 	 //piece start time is skipped (it's zero, hardcoded)
+	// 	 element = element->getNextElementSibling();
+	//  }
 
   //duration
   element = element->getNextElementSibling();
@@ -1891,15 +1948,20 @@ ProjectViewController::ProjectViewController(
   element = element->getNextElementSibling();
   synthesis = (IEvent::getFunctionString(element)=="True")?true:false;
 
-
+  //score
 	element = element->getNextElementSibling();
+  score = (IEvent::getFunctionString(element)=="True")?true:false;
 
-	string temp = IEvent::getFunctionString(element);
-	if (temp == "True" || temp == "False") {
-		score = (temp =="True")?true:false;
-		element = element->getNextElementSibling();
-	}
+  //grandstaff
+  element = element->getNextElementSibling();
+  grandStaff = (IEvent::getFunctionString(element)=="True")?true:false;
+
+  //numOfStaff
+  element = element->getNextElementSibling();
+  numOfStaff = IEvent::getFunctionString(element);
+
   //numOfChannels
+  element = element->getNextElementSibling();
   numOfChannels = IEvent::getFunctionString(element);
 
   //sampleRate
@@ -1913,12 +1975,17 @@ ProjectViewController::ProjectViewController(
   //numOfThreads
   element = element->getNextElementSibling();
   numOfThreads = IEvent::getFunctionString(element);
+
   // Output Particel
   element = element->getNextElementSibling();
   if (element){
     outputParticel = (IEvent::getFunctionString(element)=="True")?true:false;
   }
   else outputParticel=false;
+
+
+
+
   //restore notemodifiers
 
 /*  defaultNoteModifiers.insert(pair<string,bool>("-8va",true));
@@ -1942,6 +2009,10 @@ ProjectViewController::ProjectViewController(
   defaultNoteModifiers.insert(pair<string,bool>("tremolo",true));
   defaultNoteModifiers.insert(pair<string,bool>("vibrato",true));*/
 	// initialize default note modifiers
+
+  // I GOTTA EDIT HERE
+
+  //defaultNoteModifiers.insert(pair<string,int>("Staff Number",true));
 	defaultNoteModifiers.insert(pair<string,bool>("-8va",true));
 	defaultNoteModifiers.insert(pair<string,bool>("+8va",true));
 	defaultNoteModifiers.insert(pair<string,bool>("accent",true));
@@ -2329,8 +2400,13 @@ void ProjectViewController::configureNoteModifiers(){
   }
 
   Gtk::CheckButton* checkButton;
+  // Gtk::Entry* entryStaffNumber;
 // /////////////////////////////////////////////////////////// //
 cout << defaultNoteModifiers.size() << endl;
+  // noteModifiersConfigurationDialogRefBuilder->get_widget(
+  // "StaffEntry", entryStaffNumber);
+  // entryStaffNumber->set_text(entryStaffNum);
+
   if (defaultNoteModifiers["-8va"]){
     noteModifiersConfigurationDialogRefBuilder->get_widget(
       "Minus8vaButton", checkButton);
@@ -2944,7 +3020,6 @@ std::map<std::string, bool> ProjectViewController::getDefaultNoteModifiers(){
 std::vector<std::string> ProjectViewController::getCustomNoteModifiers(){
   return customNoteModifiers;
 }
-
 
 //--------------------------------------------------------------------------//
 

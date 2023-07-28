@@ -488,6 +488,11 @@ EventAttributesViewController::EventAttributesViewController(
     "FilterAttributesFunButton", button);
   button->signal_clicked().connect(sigc::mem_fun(*this, &   EventAttributesViewController::filterFunButtonClicked));
 
+  // staffnumber fine
+  attributesRefBuilder->get_widget(
+    "StaffNumberFunButton", button);
+  button->signal_clicked().connect(sigc::mem_fun(*this, &   EventAttributesViewController::staffNumberFunButtonClicked));
+
   //measure
   attributesRefBuilder->get_widget(
     "MeasureAttributesFunButton",button);
@@ -1295,6 +1300,10 @@ void EventAttributesViewController::saveCurrentShownEventData(){
     IEvent::EventExtraInfo* extraInfo =
       currentlyShownEvent->getEventExtraInfo();
     extraInfo->clearNoteModifiers();
+    // change after creating staffs
+    attributesRefBuilder->get_widget(
+      "NoteAttributesStaffNumberEntry", entry);
+    extraInfo->setStaffNum(entry->get_text());
     std::vector<Gtk::CheckButton*>::iterator iter2 =
       noteModifierCheckButtons.begin();
     for (iter2; iter2 != noteModifierCheckButtons.end();iter2++){
@@ -2742,10 +2751,14 @@ void EventAttributesViewController::switchToNoteAttributes(){
   attributesRefBuilder->get_widget("NoteAttributesNameEntry", entry);
   entry->set_text( currentlyShownEvent->getEventName());
   entry->set_sensitive(false);
+
   attributesRefBuilder->get_widget("NoteAttributesTypeEntry", entry);
   entry->set_text( currentlyShownEvent->getEventTypeString()  );
   entry->set_sensitive(false);
 
+  //here change once you figure out how to specify staff
+  attributesRefBuilder->get_widget("NoteAttributesStaffNumberEntry", entry);
+  entry->set_text( extraInfo->getStaffNum() );
 
   // clear all checkbutton
 
@@ -5027,6 +5040,21 @@ void EventAttributesViewController::filterFunButtonClicked(){
 
   FunctionGenerator* generator =
     new FunctionGenerator(functionReturnFIL,entry->get_text());
+  int result = generator->run();
+  if (generator->getResultString() !=""&& result ==0){
+    entry->set_text(generator->getResultString());
+  }
+  delete generator;
+
+}
+// change
+void EventAttributesViewController::staffNumberFunButtonClicked(){
+  Gtk::Entry* entry;
+  attributesRefBuilder->get_widget(
+    "NoteAttributesStaffNumberEntry", entry);
+
+  FunctionGenerator* generator =
+    new FunctionGenerator(functionReturnInt,entry->get_text());
   int result = generator->run();
   if (generator->getResultString() !=""&& result ==0){
     entry->set_text(generator->getResultString());

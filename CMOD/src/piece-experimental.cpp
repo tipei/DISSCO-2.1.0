@@ -235,7 +235,6 @@ Piece::Piece(string _workingPath, string _projectTitle){
   DOMElement* root = xmlDocument->getDocumentElement();
   DOMElement* configurations = root->GFEC();
   DOMElement* element = configurations->GFEC();
-
   title = XMLTC(element);
   element = element->GNES();
   fileFlags = XMLTC(element);
@@ -247,14 +246,21 @@ Piece::Piece(string _workingPath, string _projectTitle){
   pieceDuration = XMLTC(element);
   element = element->GNES();
   soundSynthesis = (XMLTC(element).compare("True")==0)?true:false;
-
+  element = element->GNES();
+  scorePrinting = (XMLTC(element).compare("True")==0)?true:false;
   element = element->GNES();
 
-  string temp = XMLTC(element);
-  if(temp == "True" || temp == "False"){
-    scorePrinting = (temp.compare("True")==0)?true:false;
-    element = element->GNES();
-  }
+  // multistaffs
+  grandStaff = (XMLTC(element).compare("True")==0)?true:false;
+  cout <<"grandStaff: " << grandStaff << endl;
+  element = element->GNES();
+
+  // get the staffs number
+  
+  numberOfStaff = atoi(XMLTC(element).c_str());
+  cout <<"numberOfStaff: " << numberOfStaff << endl;
+  element = element->GNES();
+
   numChannels = atoi(XMLTC(element).c_str());
   cout << "Channel: " << numChannels << "\n";
   element = element->GNES();
@@ -301,8 +307,11 @@ Piece::Piece(string _workingPath, string _projectTitle){
   pieceSpan.duration = utilities->evaluate(pieceDuration, NULL);
   Tempo mainTempo; //Though we supply this, "Top" will provide its own tempo.
   
+  // multistaffs
   // Initialize the output score
-  Output::notation_score_ = NotationScore(_projectTitle);
+  // Output::notation_score_ = NotationScore(_projectTitle);
+  Output::notation_score_ = NotationScore(_projectTitle,grandStaff,numberOfStaff);
+  
 
   //Initialize the output class.
   if (utilities->getOutputParticel()){
@@ -328,6 +337,7 @@ Piece::Piece(string _workingPath, string _projectTitle){
 //}
 
   //Create the Top event and recursively build its children.
+  
   DOMElement* topElement = utilities->getEventElement(eventTop, fileList);
   utilities->currChild = 0;
   Event* topEvent = new Event(topElement,

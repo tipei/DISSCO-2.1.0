@@ -593,6 +593,8 @@ public:
       {std::list<std::string> dummy;return dummy;}
     virtual void clearNoteModifiers(){}
     virtual void addNoteModifiers(std::string _modifier){}
+    virtual void setStaffNum(std::string _staffs){}
+    virtual std::string getStaffNum(){}
 
 
 
@@ -797,12 +799,15 @@ public:
     NoteExtraInfo(NoteExtraInfo* _original);
     ~NoteExtraInfo();
     std::list<std::string> getNoteModifiers();
+    std::string getStaffNum();
+    void setStaffNum(std::string _staffNum);
     void addNoteModifiers(std::string _modifier);
     void clearNoteModifiers();
     bool haveString(string _string);
 
   private:
     std::list<std::string> modifiers;
+    std::string staffNum;
   };
 
 

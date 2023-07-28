@@ -1688,6 +1688,9 @@ void IEvent::parseNonEvent(){
         extraInfo->addNoteModifiers(fileValueListIter->getString());
       }
     }
+    // //add the addnotestaff here RTIN
+    value = file_data["LASSIESTAFFNUM"];
+    extraInfo->setStaffNum((value == NULL)? "": value->getString());
   }
 
 }
@@ -1778,6 +1781,15 @@ IEvent::NoteExtraInfo::~NoteExtraInfo(){
 
 std::list<std::string> IEvent::NoteExtraInfo::getNoteModifiers(){
   return modifiers;
+}
+
+// RTIN add note staff functions here, get and set
+std::string IEvent::NoteExtraInfo::getStaffNum(){
+  return staffNum;
+}
+
+void IEvent::NoteExtraInfo::setStaffNum(std::string _staffNum){
+  staffNum = _staffNum;
 }
 
 void IEvent::NoteExtraInfo::addNoteModifiers(std::string _modifier){
@@ -1936,8 +1948,10 @@ IEvent::MeasureExtraInfo::MeasureExtraInfo(MeasureExtraInfo* _original){
   measureBuilder = _original->measureBuilder;
 }
 
+// maybe add staff here RTIN
 IEvent::NoteExtraInfo::NoteExtraInfo(NoteExtraInfo* _original){
 	 modifiers = _original->modifiers;
+   staffNum = _original->staffNum;
 }
 
 
@@ -2680,29 +2694,38 @@ string IEvent::getXMLMea(){
 
 }
 
+//change here for the XML RTIN
 string IEvent::getXMLNote(){
   char charBuffer[10];
   sprintf (charBuffer," %d", eventOrderInPalette);
 
-  string modifiersBuffer = "      <Modifiers>\n";
+  string modifiersBuffer = "          <Modifiers>\n";
+
 
   std::list<std::string> modifiers = extraInfo->getNoteModifiers();
 
+  std::string staffNum = extraInfo->getStaffNum();
+
   std::list<std::string>::iterator iter = modifiers.begin();
 
+
+
   while (iter!= modifiers.end()){
-    modifiersBuffer = modifiersBuffer + "        <Modifier>"+*iter + "</Modifier>\n";
+    modifiersBuffer = modifiersBuffer + "            <Modifier>"+*iter + "</Modifier>\n";
     iter ++;
   }
 
-  modifiersBuffer = modifiersBuffer + "      </Modifiers>\n";
+  modifiersBuffer = modifiersBuffer + "          </Modifiers>\n";
 
 
 
   string buffer =
     "    <Event orderInPalette='" + string(charBuffer) +"'>\n"
     "      <EventType>12</EventType>\n" //12 is Note
-    "      <Name>" + eventName + "</Name>\n" + modifiersBuffer +
+    "      <Name>" + eventName + "</Name>\n" 
+    "      <NoteInfo>\n"
+    "          <Staffs>" + staffNum + "</Staffs>\n" + modifiersBuffer +
+    "      </NoteInfo>\n" 
     "    </Event>\n";
 
     return buffer;
@@ -2795,12 +2818,16 @@ void IEvent::buildNonEventFromDOM(DOMElement* _element){
     extraInfo->setMeasureBuilder(getFunctionString(_element));
   }
 
+  //probably here too RTIN
   else if (eventType == eventNote){
     extraInfo = (EventExtraInfo*) new NoteExtraInfo();
-    DOMElement* thisModifier = _element->getFirstElementChild();
-
+    // _element is noteInfo
+    DOMElement* _staffs = _element->getFirstElementChild();
+    extraInfo->setStaffNum(getFunctionString(_staffs));
+    DOMElement* _modifiers = _staffs->getNextElementSibling();
+    DOMElement* thisModifier = _modifiers->getFirstElementChild(); //<modifier>
     while (thisModifier){
-      extraInfo->addNoteModifiers(getFunctionString(thisModifier));
+      extraInfo->addNoteModifiers(getFunctionString(thisModifier));//<modifier>
       thisModifier = thisModifier -> getNextElementSibling();
     }
   }

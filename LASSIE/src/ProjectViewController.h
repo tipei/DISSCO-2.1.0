@@ -226,12 +226,15 @@ private:
   std::string sampleRate;
   std::string sampleSize;
   std::string numOfThreads;
+  std::string numOfStaff;
+  // std::string staffEntryNum;
   std::string datPathAndName;
   std::string libPathAndName;
   std::string seed;
   std::string measure;
 
   bool score;
+  bool grandStaff;
   bool synthesis;
   bool outputParticel;
   bool emptyProject;

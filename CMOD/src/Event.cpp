@@ -422,7 +422,6 @@ void Event::buildChildren() {
     exit(1);
   }
   */
-
   //Create the child events.
   for (currChildNum = 0; currChildNum < numChildren; currChildNum++) {
     if (method == "0")
@@ -477,7 +476,6 @@ void Event::buildChildren() {
     //TODO: DELETE ELSEWHERE. Cleanup should probably be done after execution.
 		delete childEvents[i];
   }
-
   if (utilities->getOutputParticel()){
   //End this output sublevel.
     Output::addProperty("Updated Tempo Start Time", tempo.getStartTime());

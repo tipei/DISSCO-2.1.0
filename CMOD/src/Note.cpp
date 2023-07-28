@@ -65,6 +65,7 @@ Note::Note(const Note& other) {
   loudness_out = other.loudness_out;
   modifiers = other.modifiers;
   type = other.type;
+  staffNum = other.staffNum;
 }
 
 //----------------------------------------------------------------------------//
@@ -91,19 +92,21 @@ void Note::initSplit(){
 }
 //----------------------------------------------------------------------------//
 
-void Note::setPitchWellTempered(int pitchNum) {
+void Note::setPitchWellTempered(int absPitchNum) {
+  // store the pitchNum in Note
+  setPitchNum(absPitchNum);
+  pitchNum = absPitchNum;
   octaveNum = pitchNum / 12;
 
   octavePitch = pitchNum % 12;
   pitchName = pitchNames[octavePitch];
-
 
   pitch_out = OutNames[octavePitch];
   string signs[8] = {",,,",",,",",","","'","''","'''","''''"};
   string sign = signs[octaveNum];
   pitch_out = "<" + pitch_out + sign + ">";
 
-
+  
   Output::addProperty("Pitch Number", pitchNum, "semitones");
   Output::addProperty("Pitch Name", pitchName);
   Output::addProperty("Octave Number", octaveNum);
@@ -121,6 +124,7 @@ int Note::HertzToPitch(float freqHz) {
   }
 
   pitchNum = rint(12 * log2(freqHz / C0));
+  setPitchNum(pitchNum);
 
   return pitchNum;
 }
@@ -223,6 +227,34 @@ void Note::mergeModifiers(vector<string> modNames_out){
   for(size_t i=0; i<modNames_out.size();i++){
     modifiers_out.push_back(modNames_out.at(i));
   }
+}
+//----------------------------------------------------------------------------//
+
+// multistaffs
+void Note::setStaffNum(int noteStaff){
+  if(noteStaff<0){
+    noteStaff = 0;
+  }
+  staffNum = noteStaff;
+}
+
+int Note::getStaffNum(){
+  return staffNum;
+}
+
+int Note::getPitchNum(){
+  return pitchNum;
+}
+
+void Note::setPitchNum(int notePitchNum){
+  pitchNum = notePitchNum;
+}
+
+bool Note::is_real_note(){
+  if(type==NoteType::kNote){
+      return true;
+  }
+  return false;
 }
 
 //----------------------------------------------------------------------------//

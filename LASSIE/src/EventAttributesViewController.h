@@ -499,6 +499,7 @@ private:
   void patternFunButtonClicked();
   void reverbFunButtonClicked();
   void filterFunButtonClicked();
+  void staffNumberFunButtonClicked();
   void measureFunButtonClicked();
   void spatializationFunButtonClicked();
   bool entryChangedByShowCurrentEvent;

@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
-
+// all codes with the comment "multistaffs" are added by xiaoyi han
 //----------------------------------------------------------------------------//
 //
 //  Note.h
@@ -58,6 +58,7 @@ class Note {
 
     //Absolute numeric value of the pitch
     int pitchNum;
+    
 
     //The octave the pitch is in
     int octaveNum;
@@ -77,7 +78,6 @@ class Note {
     //Modifiers
     std::vector<std::string> modifiers; //string names of the modifiers
     
-
     /* variables for output notes */
     string pitch_out;
     string type_out;
@@ -91,6 +91,9 @@ class Note {
     int split;
 
     std::vector<std::string> modifiers_out;
+
+    //Absolute numeric value of the Staff
+    int staffNum;
 
     NoteType::type type;
 
@@ -178,6 +181,23 @@ class Note {
      **/
     void setModifiers(std::vector<std::string> modNames);
     void mergeModifiers(std::vector<std::string> modNames_out);
+
+    /**
+     * Set or get the staff number of this Note.
+    **/
+    void setStaffNum(int noteStaff);
+    int getStaffNum();
+
+    /**
+     * Set or get the pitch number of this Note.
+    **/
+    void setPitchNum(int notePitchNum);
+    int getPitchNum();
+
+    /**
+     * Judge if this note has pitch.
+    **/
+    bool is_real_note();
 
     /**
      * Get the text associated with this Note.

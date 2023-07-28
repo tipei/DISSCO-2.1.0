@@ -89,6 +89,9 @@ title				|
 fileFlags			|
 fileList			|
 soundSynthesis			|
+scorePrint			|
+grandStaffPrint			|
+numStaff			|
 numChannels			|
 scoreFlag                       |
 sampleRate			|
@@ -104,6 +107,9 @@ LASSIEFILELIST |
 LASSIEPIECESTARTTIME |
 LASSIEPIECEDURATION |
 LASSIESOUNDSYNTHESIS |
+LASSIESCOREPRINT |
+LASSIEGRANDSTAFFPRINT |
+LASSIENUMSTAFFS |
 LASSIENUMCHANNELS |
 LASSIESAMPLERITE |
 LASSIESAMPLESIZE |

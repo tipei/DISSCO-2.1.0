@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
-
+// all codes with the comment "multistaffs" are added by xiaoyi han
 //----------------------------------------------------------------------------//
 //
 //  Piece.h
@@ -131,6 +131,8 @@ class Piece {
 
   bool soundSynthesis;
   bool scorePrinting;
+  bool grandStaff;
+  int numberOfStaff;
   int numChannels;
   int sampleRate;
   int sampleSize;

@@ -27,7 +27,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 //   later.
 //
 //----------------------------------------------------------------------------//
-
+// all codes with the comment "multistaffs" are added by xiaoyi han
 #ifndef BOTTOM_H
 #define BOTTOM_H
 
@@ -450,9 +450,14 @@ class Bottom : public Event {
     /**
      *  Apply modifiers for a note.
      **/
-//  vector<string> applyNoteModifiers();
+    //  vector<string> applyNoteModifiers();
     vector<string> applyNoteModifiers(DOMElement* _playingMethods);
     vector<string> applyNoteModifiersOld();
+    // multistaffs
+    /**
+     *  Apply staff for a note.
+     **/
+    // int applyNoteStaffs(DOMElement* _playingMethods);
 
 };
 #endif

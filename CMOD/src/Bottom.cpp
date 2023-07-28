@@ -353,9 +353,22 @@ void Bottom::buildNote(SoundAndNoteWrapper* _soundNoteWrapper) {
   float loudfloat = computeLoudness();
   newNote->setLoudnessSones(loudfloat);
 
+// multistaffs
+  //<NoteInfo>
+  //  <Staffs>...<\staffs>
+  //  <Modifiers>...<\Modifiers>
+  //<\NoteInfo>
+  // multistaffs
+  DOMElement* noteInfo = _soundNoteWrapper->element->GFEC()->GNES()->GNES();
+  DOMElement* staffsInfo = noteInfo->GFEC();
+  DOMElement* modifiersInfo = noteInfo->GFEC()->GNES();
 //set modifiers
-  vector<string> noteMods = applyNoteModifiers(_soundNoteWrapper->element);
-    newNote->setModifiers(noteMods);
+  vector<string> noteMods = applyNoteModifiers(modifiersInfo);
+  newNote->setModifiers(noteMods);
+// set childStaff
+  int noteStaff = utilities->evaluate(XMLTC(staffsInfo),(void*)this);
+  // int noteStaff = applyNoteStaffs(_soundNoteWrapper->element);
+  newNote->setStaffNum(noteStaff);
 
   //Set the pitch.
   float baseFrequency = computeBaseFreq();
@@ -376,7 +389,10 @@ void Bottom::buildNote(SoundAndNoteWrapper* _soundNoteWrapper) {
       _soundNoteWrapper->ts.durationEDU.To<int>());
   // Initialize the parameter split before the arrangement
   newNote->initSplit();
-  Output::notation_score_.RegisterTempo(tempo);
+  
+  // multistaffs
+  //Output::notation_score_.RegisterTempo(tempo);
+  Output::notation_score_.RegisterTempo(tempo,newNote->getStaffNum());
   Output::notation_score_.InsertNote(newNote);
 
   if (utilities->getOutputParticel()){
@@ -1663,6 +1679,16 @@ vector<string> Bottom::applyNoteModifiersOld() {
   return modNames;
 }
 
+// int applyNoteStaffs(DOMElement* _playingMethods){
+//   int noteStaff;
+
+//   DOMElement* noteInfo = _playingMethods->GFEC()->GNES()->GNES();
+//   DOMElement* techniqueElement = noteInfo->GFEC();
+
+//   noteStaff = utilities->evaluate(XMLTC(techniqueElement),(void*)this);
+
+//   return noteStaff;
+// }
 
 //----------------------------------------------------------------------------//
 
@@ -1670,12 +1696,14 @@ vector<string> Bottom::applyNoteModifiers( DOMElement* _playingMethods) {
 
   vector<string> modNames;
 
-  DOMElement* techniqueElement = _playingMethods->GFEC()->GNES()->GNES();
+  // DOMElement* noteInfo = _playingMethods->GFEC()->GNES()->GNES();
+  // DOMElement* techniqueElement = noteInfo->GFEC()->GNES();
 
 //  string name0 = XMLTC(techniqueElement);
 //  cout << "name0: " << name0 << endl;
 
-  DOMElement* currentTechnique = techniqueElement->GFEC();
+  // DOMElement* currentTechnique = techniqueElement->GFEC();
+  DOMElement* currentTechnique = _playingMethods->GFEC();
 
   // do {
   //   string name = XMLTC(currentTechnique);

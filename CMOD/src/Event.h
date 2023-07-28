@@ -71,6 +71,9 @@ public:
   // or of the note
   DOMElement* element;
 
+  // multistaffs
+  // DOMElement* staffs;
+  // DOMElement* modifiers;
   SoundAndNoteWrapper(DOMElement* _element,
                       TimeSpan _ts,
 		      string _name,
@@ -81,7 +84,6 @@ public:
     name(_name),
     element(_element),
     tempo (_tempo){}
-
 };
 
 

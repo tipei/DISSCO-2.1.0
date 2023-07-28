@@ -86,7 +86,7 @@ int main(int parameterCount, char **parameterList) {
   //Create the piece!
   Piece* piece = new Piece(workingPath, projectName);
   delete piece;
-//delete outputFile;		//Sever
+  //delete outputFile;		//Sever
 
   time_t endTime;
   time(&endTime);

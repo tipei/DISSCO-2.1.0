@@ -1384,7 +1384,6 @@ float vel;
         groupName.erase(0, groupName.find_first_not_of(' '));
         groupName.erase(groupName.find_last_not_of(' ') + 1);
         modGroups[groupName].push_back(newMod);
-        cout << "Added modifier to group " << groupName << endl;
       }
       delete probEnv;
     }
@@ -1450,7 +1449,6 @@ float vel;
           groupName.erase(0, groupName.find_first_not_of(' '));
           groupName.erase(groupName.find_last_not_of(' ') + 1);
           modGroups[groupName].push_back(newPartialMod);
-          cout << "Added modifier to group " << groupName << endl;
         }
         envelopeElement = envelopeElement->GNES();
       }

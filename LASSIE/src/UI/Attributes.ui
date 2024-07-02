@@ -452,12 +452,11 @@
         <property name="can_focus">False</property>
         <property name="left_padding">12</property>
         <child>
-          <object class="GtkBox" id="box1">
+          <object class="GtkVBox" id="box1">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="orientation">vertical</property>
             <child>
-              <object class="GtkBox" id="box2">
+              <object class="GtkHBox" id="box2">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <child>
@@ -492,7 +491,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkBox" id="box3">
+              <object class="GtkHBox" id="box3">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <child>
@@ -527,7 +526,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkBox" id="box4">
+              <object class="GtkHBox" id="box4">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <child>
@@ -5324,7 +5323,7 @@ If you select "Units", this entry should be an integer.</property>
     <property name="can_focus">False</property>
     <property name="orientation">vertical</property>
     <child>
-      <object class="GtkBox" id="box5">
+      <object class="GtkHBox" id="box5">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <child>
@@ -5376,7 +5375,7 @@ If you select "Units", this entry should be an integer.</property>
       </packing>
     </child>
     <child>
-      <object class="GtkBox" id="box6">
+      <object class="GtkHBox" id="box6">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <child>
@@ -5427,7 +5426,7 @@ If you select "Units", this entry should be an integer.</property>
       </packing>
     </child>
     <child>
-      <object class="GtkBox" id="box7">
+      <object class="GtkHBox" id="box7">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <child>

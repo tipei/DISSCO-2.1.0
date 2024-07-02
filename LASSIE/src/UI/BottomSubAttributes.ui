@@ -482,7 +482,7 @@ this field is disabled.</property>
       </packing>
     </child>
     <child>
-      <object class="GtkBox" id="hbox7">
+      <object class="GtkHBox" id="hbox7">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <child>
@@ -534,7 +534,7 @@ this field is disabled.</property>
     </child>
     <child>
       <!-- ZIYUAN CHEN, July 2023 - Add "Modifier Group" entry -->
-      <object class="GtkBox" id="hbox8">
+      <object class="GtkHBox" id="hbox8">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <child>

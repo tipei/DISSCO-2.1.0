@@ -3897,6 +3897,9 @@ void BottomEventModifierAlignment::grayOutModifierFields(ModifierType type) {
   //attributesRefBuilder->get_widget("partialResultStringEntry", entry);
   //entry->set_sensitive(false);
 
+  attributesRefBuilder->get_widget("groupNameEntry", entry);
+  entry->set_sensitive(true);
+
   //Checks if modifiers are applied to sound or partials
   attributesView->modified();
   Gtk::ComboBox* combobox;
@@ -3913,7 +3916,7 @@ void BottomEventModifierAlignment::grayOutModifierFields(ModifierType type) {
       if (applyType == "SOUND") {
         entry->set_sensitive(false);
       } else if (applyType == "PARTIAL") {  //If partials, only allow partialResultStringEntry to be modified
-        entry->set_sensitive(true);
+        entry->set_sensitive(type!=modifierDetune); //if type is detune prevent all inputs since it's invalid
 
         attributesRefBuilder->get_widget("probablityEnvelopeEntry", entry);
         entry->set_sensitive(false);
@@ -3940,9 +3943,6 @@ void BottomEventModifierAlignment::grayOutModifierFields(ModifierType type) {
       }
     }
   }
-
-  attributesRefBuilder->get_widget("groupNameEntry", entry);
-  entry->set_sensitive(true);
 
   if (type == modifierTremolo|| type == modifierVibrato) {
 

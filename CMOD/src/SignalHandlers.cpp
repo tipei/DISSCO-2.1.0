@@ -33,9 +33,9 @@ void segfaultHandler(int signal) {
             char *real_name = abi::__cxa_demangle(function, NULL, NULL, &status);   //Demangle the function name
 
             if (status)                                     //If the demangling failed, print the mangled name                                   
-                std::cerr << "External to CMOD  " << function << " mem offset:" << start << "\n";
+                std::cerr << "--External to CMOD  " << function << " mem offset:" << start << "\n";
             else
-                std::cerr << real_name << " mem offset:" << start << "\n";
+                std::cerr << "--" << real_name << " mem offset:" << start << "\n";
 
             free(real_name);
         } 

@@ -36,6 +36,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "Piece.h"
 #include <time.h>
 #include "Note.h"
+#include "SignalHandlers.h"
 
 			//added by Sever must be a more elegant way
 #include <iostream>
@@ -43,6 +44,9 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 using namespace std;
 
 int main(int parameterCount, char **parameterList) {
+  // Rubin Du 2024: Installed custom signal handler to print stack trace on segfault
+  signal(SIGSEGV, segfaultHandler);
+
   time_t startTime;
   time(&startTime);
 

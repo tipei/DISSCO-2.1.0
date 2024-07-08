@@ -50,7 +50,7 @@ project "lcmod"
   excludes {"CMOD/src/Main.*", "CMOD/src/test/**"}
   kind "StaticLib"
   targetdir "lib"
-  buildoptions {"-Wno-deprecated", "-gstabs"}
+  buildoptions {"-Wno-deprecated", "-gstabs", "-g"}
   configuration "Debug" flags(DebugFlags)
   configuration "Release" flags(ReleaseFlags)
 
@@ -61,8 +61,8 @@ project "cmod"
   kind "ConsoleApp"
   libdirs {"lib", "/usr/local/lib"}
   links {"lcmod", "lass", "parser","muparser", "pthread", "sndfile"}
-  linkoptions{"-lxerces-c"}
-  buildoptions {"-Wno-deprecated", "-gstabs"}
+  linkoptions{"-lxerces-c", "-rdynamic"}
+  buildoptions {"-Wno-deprecated", "-gstabs", "-g"}
   configuration "Debug" flags(DebugFlags)
   configuration "Release" flags(ReleaseFlags)
   configuration "macosx"

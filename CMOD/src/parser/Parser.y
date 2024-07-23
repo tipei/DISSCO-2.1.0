@@ -55,10 +55,10 @@ FileValue *ToList(FileValue *v) {
 **/
 FileValue *ConcatList(FileValue *v1, FileValue *v2) {
   FileValue *ret;
-  
+
   if (v1 == NULL || v2 == NULL) return NULL;
   if (!(v1->isList()) || !(v2->isList())) return NULL;
-  
+
   ret = new FileValue;
   ret->setOrigType(FVAL_LIST);
   ret->setReturnType(FVAL_LIST);
@@ -118,7 +118,7 @@ void printList(const FileValue *v)
 *  Prints a filevalue
 **/
 void printFileValue(const FileValue *v)
-{	
+{
 	switch(v->getOrigType()) {
 	case FVAL_FUNC:
 		printf("%s ( ", v->getFtnString().c_str());
@@ -194,9 +194,9 @@ int yyerror(const char *msg);
 %%
 
 
-config : 
-	one_or_more_eventconfigs { 
-		#ifdef PARSER_DEBUG 
+config :
+	one_or_more_eventconfigs {
+		#ifdef PARSER_DEBUG
 		cout << "event config!!!" << endl;
 		#endif
 		}
@@ -215,12 +215,12 @@ one_or_more_eventconfigs:
 ;
 
 eventconfig :
-	function SEMITOK { 
+	function SEMITOK {
 		#ifdef PARSER_DEBUG
 		printf("saw lone function");
 		#endif
 		}
-	| statement SEMITOK { 
+	| statement SEMITOK {
 		#ifdef PARSER_DEBUG
 		printf("event Statement over\n");
 		#endif
@@ -233,23 +233,23 @@ one_or_more_globalconfigs:
 	| globalconfig
 ;
 
-globalconfig : 
-	gstatement SEMITOK { 
+globalconfig :
+	gstatement SEMITOK {
 		#ifdef PARSER_DEBUG
-		printf("global Satement over\n"); 
+		printf("global Satement over\n");
 		#endif
 		}
 ;
 
 
-gstatement : GLOBALKEYWORDTOK EQUALTOK arg { 
+gstatement : GLOBALKEYWORDTOK EQUALTOK arg {
 						 #ifdef PARSER_DEBUG
-						 printf("saw gstatement\n"); 
+						 printf("saw gstatement\n");
 						 #endif
 					     file_data[$1] = TOVALUE($3); }
 ;
 
-statement : EVENTKEYWORDTOK EQUALTOK arg  { 
+statement : EVENTKEYWORDTOK EQUALTOK arg  {
 					#ifdef PARSER_DEBUG
 					printf(stderr,"Line %d\n",@1.first_line);
 					printf("saw statement\n");
@@ -261,44 +261,44 @@ statement : EVENTKEYWORDTOK EQUALTOK arg  {
 				  }
 ;
 
-arg : NUMBERTOK  { 
+arg : NUMBERTOK  {
 		   #ifdef PARSER_DEBUG
 		   printf("Saw a number\n");
 		   #endif
 		   $$ = (char*)newNumber(atof($1)); }
 	| list {
 			#ifdef PARSER_DEBUG
-			printf("saw a list\n"); $$ = $1; 
+			printf("saw a list\n"); $$ = $1;
 			#endif
 			}
-	| STRTOK { 
+	| STRTOK {
 		   #ifdef PARSER_DEBUG
 		   printf("p:Saw a string\n");
 		   #endif
 		   $$ = (char*)newString($1); }
 	| function {
 		   #ifdef PARSER_DEBUG
-		   printf("saw a function\n"); 
+		   printf("saw a function\n");
 		   #endif
-		   $$ = $1; 
+		   $$ = $1;
 		   }
-	| SFUNCTOK { 
+	| SFUNCTOK {
 		#ifdef PARSER_DEBUG
-		printf("saw a static function\n"); 
+		printf("saw a static function\n");
 		#endif
 		$$ = (char*)newFunc($1, newNull()); }
 ;
 
-list : LBRAC list_element RBRAC { 
+list : LBRAC list_element RBRAC {
 		#ifdef PARSER_DEBUG
-		printf("Saw a list list %s\n", $2); 
+		printf("Saw a list list %s\n", $2);
 		#endif
 		$$ = $2; }
 ;
 
-funclist : LPAREN list_element RPAREN { 
+funclist : LPAREN list_element RPAREN {
 		#ifdef PARSER_DEBUG
-		cout << "saw function list" << endl; 
+		cout << "saw function list" << endl;
 		#endif
 		$$=$2; }
 ;
@@ -320,7 +320,7 @@ list_element : arg { $$ = (char*)ToList((FileValue*)$1);
 				   $$ = (char*)ConcatList(v1, TOVALUE($3)); }
 ;
 
-function : FUNCTOK funclist  {  
+function : FUNCTOK funclist  {
 				#ifdef PARSER_DEBUG
 				cout << "saw function " << $1 << endl;
 				#endif
@@ -349,7 +349,7 @@ int main()
 }
 */
 
-int yyerror (char *msg)
+int yyerror  (char *msg)
 {
 	return printf("Error encountered, line %d: %s\n", yylloc.first_line, msg);
 }

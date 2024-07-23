@@ -2,20 +2,20 @@
 /* A Bison parser, made by GNU Bison 2.4.1.  */
 
 /* Skeleton implementation for Bison's Yacc-like parsers in C
-   
+
       Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003, 2004, 2005, 2006
    Free Software Foundation, Inc.
-   
+
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
    the Free Software Foundation, either version 3 of the License, or
    (at your option) any later version.
-   
+
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
    GNU General Public License for more details.
-   
+
    You should have received a copy of the GNU General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
@@ -28,7 +28,7 @@
    special exception, which will cause the skeleton and the resulting
    Bison output files to be licensed under the GNU General Public
    License without this special exception.
-   
+
    This special exception was added by the Free Software Foundation in
    version 2.2 of Bison.  */
 
@@ -123,10 +123,10 @@ FileValue *ToList(FileValue *v) {
 **/
 FileValue *ConcatList(FileValue *v1, FileValue *v2) {
   FileValue *ret;
-  
+
   if (v1 == NULL || v2 == NULL) return NULL;
   if (!(v1->isList()) || !(v2->isList())) return NULL;
-  
+
   ret = new FileValue;
   ret->setOrigType(FVAL_LIST);
   ret->setReturnType(FVAL_LIST);
@@ -186,7 +186,7 @@ void printList(const FileValue *v)
 *  Prints a filevalue
 **/
 void printFileValue(const FileValue *v)
-{	
+{
 	switch(v->getOrigType()) {
 	case FVAL_FUNC:
 		printf("%s ( ", v->getFtnString().c_str());
@@ -1588,8 +1588,8 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 200 "Parser.y"
-    { 
-		#ifdef PARSER_DEBUG 
+    {
+		#ifdef PARSER_DEBUG
 		cout << "event config!!!" << endl;
 		#endif
 		;}
@@ -1610,7 +1610,7 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 220 "Parser.y"
-    { 
+    {
 		#ifdef PARSER_DEBUG
 		printf("saw lone function");
 		#endif
@@ -1621,7 +1621,7 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 225 "Parser.y"
-    { 
+    {
 		#ifdef PARSER_DEBUG
 		printf("event Statement over\n");
 		#endif
@@ -1632,9 +1632,9 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 239 "Parser.y"
-    { 
+    {
 		#ifdef PARSER_DEBUG
-		printf("global Satement over\n"); 
+		printf("global Satement over\n");
 		#endif
 		;}
     break;
@@ -1643,9 +1643,9 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 247 "Parser.y"
-    { 
+    {
 						 #ifdef PARSER_DEBUG
-						 printf("saw gstatement\n"); 
+						 printf("saw gstatement\n");
 						 #endif
 					     file_data[(yyvsp[(1) - (3)])] = TOVALUE((yyvsp[(3) - (3)])); ;}
     break;
@@ -1654,7 +1654,7 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 254 "Parser.y"
-    { 
+    {
 					#ifdef PARSER_DEBUG
 					printf(stderr,"Line %d\n",(yylsp[(1) - (3)]).first_line);
 					printf("saw statement\n");
@@ -1670,7 +1670,7 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 266 "Parser.y"
-    { 
+    {
 		   #ifdef PARSER_DEBUG
 		   printf("Saw a number\n");
 		   #endif
@@ -1683,7 +1683,7 @@ yyreduce:
 #line 271 "Parser.y"
     {
 			#ifdef PARSER_DEBUG
-			printf("saw a list\n"); (yyval) = (yyvsp[(1) - (1)]); 
+			printf("saw a list\n"); (yyval) = (yyvsp[(1) - (1)]);
 			#endif
 			;}
     break;
@@ -1692,7 +1692,7 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 276 "Parser.y"
-    { 
+    {
 		   #ifdef PARSER_DEBUG
 		   printf("p:Saw a string\n");
 		   #endif
@@ -1705,9 +1705,9 @@ yyreduce:
 #line 281 "Parser.y"
     {
 		   #ifdef PARSER_DEBUG
-		   printf("saw a function\n"); 
+		   printf("saw a function\n");
 		   #endif
-		   (yyval) = (yyvsp[(1) - (1)]); 
+		   (yyval) = (yyvsp[(1) - (1)]);
 		   ;}
     break;
 
@@ -1715,9 +1715,9 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 287 "Parser.y"
-    { 
+    {
 		#ifdef PARSER_DEBUG
-		printf("saw a static function\n"); 
+		printf("saw a static function\n");
 		#endif
 		(yyval) = (char*)newFunc((yyvsp[(1) - (1)]), newNull()); ;}
     break;
@@ -1726,9 +1726,9 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 294 "Parser.y"
-    { 
+    {
 		#ifdef PARSER_DEBUG
-		printf("Saw a list list %s\n", (yyvsp[(2) - (3)])); 
+		printf("Saw a list list %s\n", (yyvsp[(2) - (3)]));
 		#endif
 		(yyval) = (yyvsp[(2) - (3)]); ;}
     break;
@@ -1737,9 +1737,9 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 301 "Parser.y"
-    { 
+    {
 		#ifdef PARSER_DEBUG
-		cout << "saw function list" << endl; 
+		cout << "saw function list" << endl;
 		#endif
 		(yyval)=(yyvsp[(2) - (3)]); ;}
     break;
@@ -1775,7 +1775,7 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 325 "Parser.y"
-    {  
+    {
 				#ifdef PARSER_DEBUG
 				cout << "saw function " << (yyvsp[(1) - (2)]) << endl;
 				#endif
@@ -1849,7 +1849,8 @@ yyerrlab:
 	  }
 	else
 	  {
-	    yyerror (YY_("syntax error"));
+      // Wentao Zhang 2024: "deprecated conversion from string constant to char* warning resolved
+	    yyerror (YY_(const_cast<char*>("syntax error")));
 	    if (yysize != 0)
 	      goto yyexhaustedlab;
 	  }
@@ -1970,7 +1971,8 @@ yyabortlab:
 | yyexhaustedlab -- memory exhaustion comes here.  |
 `-------------------------------------------------*/
 yyexhaustedlab:
-  yyerror (YY_("memory exhausted"));
+// Wentao Zhang 2024: "deprecated conversion from string constant to char* warning resolved
+  yyerror (YY_(const_cast<char*>("memory exhausted")));
   yyresult = 2;
   /* Fall through.  */
 #endif
@@ -2036,4 +2038,3 @@ int yywrap()
 {
 	return 1;
 }
-

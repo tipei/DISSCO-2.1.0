@@ -66,11 +66,14 @@ MultiTrack* Partial::render(int numChannels,
 {
     // calculate the number of samples needed:
     m_sample_count_type numSamplesToRender = (m_sample_count_type) (duration * (m_time_type)samplingRate);
-    m_sample_count_type numSamplesTotal;
-    if(reverbObj != NULL)
-        numSamplesTotal = (m_sample_count_type) ((duration + reverbObj->getDecay()) * (m_time_type)samplingRate);
-    else
-        numSamplesTotal = (m_sample_count_type) (duration * (m_time_type)samplingRate);
+
+    //unused parameter numSamplesTotal
+    // m_sample_count_type numSamplesTotal;
+    // if(reverbObj != NULL)
+    //     numSamplesTotal = (m_sample_count_type) ((duration + reverbObj->getDecay()) * (m_time_type)samplingRate);
+    // else
+    
+    //     numSamplesTotal = (m_sample_count_type) (duration * (m_time_type)samplingRate);
     // create two SoundSample objects to write to:
     // one for the actuial sound:
     //    SoundSample* waveSample = new SoundSample(numSamplesTotal, samplingRate);

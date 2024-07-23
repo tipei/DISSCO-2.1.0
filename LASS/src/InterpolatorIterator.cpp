@@ -86,14 +86,14 @@ m_value_type& LinearInterpolatorIterator::next()
     else if (!queue_.empty())
     {
         // pop the top entry
-        
+
         Entry e = queue_.front();
         //the line below is substituted by the line above -- Ming-ching
         //Entry& e = queue_.front();
         queue_.pop_front();
 
         // set up for the iterator:
-        stepsLeft_ = e.steps_;        
+        stepsLeft_ = e.steps_;
         value_ = e.v_from_;
         delta_ = (e.v_to_ - e.v_from_) / ((m_value_type) e.steps_);
 
@@ -107,7 +107,7 @@ m_value_type& LinearInterpolatorIterator::next()
         // just return the value.
         return value_;
     }
-    
+
 }
 
 ExponentialInterpolatorIterator::ExponentialInterpolatorIterator()
@@ -122,8 +122,8 @@ ExponentialInterpolatorIterator* ExponentialInterpolatorIterator::clone()
 
 /*************************************************************************/
 // This is a very useful function to essentially find the y-value of the
-// x-value (time-value) passed in as an argument.  If the point asked for 
-// is at the start of a segment, this is an easy function.  However, if it 
+// x-value (time-value) passed in as an argument.  If the point asked for
+// is at the start of a segment, this is an easy function.  However, if it
 // is not, the value must be interpolated, either linearly or exponentially,
 // because these are the two path types currently defined.
 //
@@ -135,15 +135,15 @@ ExponentialInterpolatorIterator* ExponentialInterpolatorIterator::clone()
 //  1 + ((y(t) - y1)/y1) = (1 + ((y2 - y1)/y1)) ^ ((t - t1)/(t2 - t1))
 //
 // Then, the following simplifications are done:
-// 
+//
 //   X = (y(t) - y1)/y1
 //  dy = (y2 - y1)/y1
 //  dt = (t - t1)/(t2 - t1)
-// 
+//
 // So, the equation becomes:
 //
 //   1 + X = (1 + dy) ^ dt
-// 
+//
 // which is what is used in this function.  This shows a very important
 // detail.  This gets the value relative to this exponential function,
 // not an absolute value.
@@ -165,7 +165,7 @@ m_value_type& ExponentialInterpolatorIterator::next()
         stepsLeft_--;
         m_value_type y1 = e.v_from_;
 	    m_value_type y2 = e.v_to_;
-        m_value_type dy;
+        // m_value_type dy;
 
         if( y1 == 0 )
             y1 = .0001;
@@ -178,7 +178,8 @@ m_value_type& ExponentialInterpolatorIterator::next()
             alpha = -alpha;
         }
 
-        dy = (y2 - y1) / y1;
+        // unused parameter dy
+        // dy = (y2 - y1) / y1;
 	    m_time_type t1 = e.t_from_;
         m_time_type t2 = e.t_to_;
         m_time_type t = (((t2 - t1) / e.steps_) * (e.steps_ - stepsLeft_)) + t1;
@@ -195,11 +196,11 @@ m_value_type& ExponentialInterpolatorIterator::next()
         stepsLeft_ = e.steps_;
         value_ = e.v_from_;
     }
-    
+
     return value_;
 }
 
-CubicSplineInterpolatorIterator::CubicSplineInterpolatorIterator() 
+CubicSplineInterpolatorIterator::CubicSplineInterpolatorIterator()
   : x0(-1), y0(-1), x3(0), y3(0)
 {
 }
@@ -233,7 +234,7 @@ m_value_type& CubicSplineInterpolatorIterator::next()
 {
 
     if( queue_.empty() ) return value_;
-    
+
     Entry e = queue_.front();
     // the line below is substituted by the line above --Ming-ching
     //Entry& e = queue_.front();
@@ -267,7 +268,7 @@ m_value_type& CubicSplineInterpolatorIterator::next()
         y1 = e.v_from_;
 	m_value_type y2 = e.v_to_;
 
-        // since we can't lookahead, just give the next points the end of 
+        // since we can't lookahead, just give the next points the end of
         // the range's values
         if( chk ) { x3 = x2; y3 = y2; }
 
@@ -313,4 +314,3 @@ m_value_type& CubicSplineInterpolatorIterator::next()
 
 //----------------------------------------------------------------------------//
 #endif //__INTERPOLATOR_ITERATOR_CPP
-

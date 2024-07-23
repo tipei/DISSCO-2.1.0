@@ -87,30 +87,35 @@ bool AuWriter::write_one_per_track(MultiTrack& mt, char *filename, ...)
 }
 
 //----------------------------------------------------------------------------//
-bool AuWriter::write(vector<SoundSample*>& channels, string filename, 
+bool AuWriter::write(vector<SoundSample*>& channels, string filename,
 						int bits)
 {
     // ensure that all of the SoundSamples, have the same samplingRate.
     // Also, find the lowest sampleCount value of all the SoundSamples.
     // warn if sections of other SoundSamples are going to be clipped
     // because of this.
-    
+
     //Clear out the info structure.
+
+
+    // unused parameter
+    (void) bits;;
+
     SF_INFO s_info;
     memset(&s_info, 0, sizeof(SF_INFO));
-    
+
     //Ensure we actually have channels of sound to work with.
     if (channels.size() == 0) {
       cout << "ERROR: AuWriter: numChannels = 0" << endl;
       return false;
     }
-    
+
     //Set the info parameters.
     s_info.channels = channels.size();
     s_info.samplerate = channels[0]->getSamplingRate();
     s_info.format = SF_FORMAT_PCM_24;
     bits = 0; //Do not use the incoming format, 24-bit is all-purpose.
-    
+
     //Determine what format to use based on the filename extension.
     if(filename.find(".wav") != string::npos) {
       s_info.format = s_info.format | SF_FORMAT_WAV;
@@ -124,7 +129,7 @@ bool AuWriter::write(vector<SoundSample*>& channels, string filename,
         " using .wav, .aiff, or .au." << endl;
        return false;
     }
-    
+
     //Open the sound file.
     SNDFILE* s = sf_open(filename.c_str(), SFM_WRITE, &s_info);
     if(!s) {
@@ -132,7 +137,7 @@ bool AuWriter::write(vector<SoundSample*>& channels, string filename,
         "' could not be opened by libsndfile." << endl;
       return false;
     }
-    
+
     //Determine max number of samples in the channels.
     m_sample_count_type minSamples = channels[0]->getSampleCount();
     m_sample_count_type maxSamples = minSamples;
@@ -144,32 +149,32 @@ bool AuWriter::write(vector<SoundSample*>& channels, string filename,
              << "have the same sampling rate" << endl;
         return false;
       }
-      
+
       //Check the number of samples.
       m_sample_count_type count = channels[c]->getSampleCount();
       if (count < minSamples) minSamples = count;
       if (count > maxSamples) maxSamples = count;
     }
-    
+
     //Warn about different amounts of samples.
     if(maxSamples > minSamples) {
       m_time_type secondsClipped =
        ((m_time_type)(maxSamples - minSamples)) /
        ((m_time_type)channels[0]->getSamplingRate());
-       
-      cerr << "WARNING: AuWriter: " 
+
+      cerr << "WARNING: AuWriter: "
            << "Because not all SoundSamples were of the same length, " << endl
            << secondsClipped << " seconds will be clipped off of the "
            << "end of one or more channels." << endl;
     }
-    
+
     //Create multi-channel chunk.
     int chunkFrames = 1024 * 16;
     float* chunk = new float[chunkFrames * channels.size()];
-    
-    
+
+
     int outOfBounds = 0;
-    
+
     for(m_sample_count_type currentIn = 0; currentIn < minSamples; currentIn += chunkFrames){
       m_sample_count_type framesToWrite = chunkFrames;
       if(framesToWrite > minSamples - currentIn)
@@ -177,18 +182,18 @@ bool AuWriter::write(vector<SoundSample*>& channels, string filename,
       for(int c = 0; c < (int)channels.size(); c++) {
         for(m_sample_count_type i = currentIn; i < currentIn + framesToWrite; i++) {
           m_sample_type sample = (*channels[c])[i];
-          
+
           //Check bounds.
           if (sample > 1.0) {sample = 1.0; outOfBounds++;}
           if (sample < -1.0) {sample = -1.0; outOfBounds++;}
-          
+
           chunk[(i - currentIn) * channels.size() + c] = sample;
         }
       }
       sf_writef_float(s, chunk, (sf_count_t)framesToWrite);
     }
     sf_close(s);
-    
+
     delete[] chunk; //added by ming-ching to prevent memory leak. Dec.10 2012
     return true;
 }
@@ -200,6 +205,6 @@ void AuWriter::WriteIntMsb(ostream &out, long l, int size) {
     WriteIntMsb(out, l>>8, size-1); // Write MS Bytes
     out.put(l&255); // Write LS Byte
 }
-    
+
 //----------------------------------------------------------------------------//
 #endif //__AU_WRITER_CPP

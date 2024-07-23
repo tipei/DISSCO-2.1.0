@@ -3893,11 +3893,56 @@ void BottomEventModifierAlignment::grayOutModifierFields(ModifierType type) {
   
   Gtk::Entry* entry;
 
-  attributesRefBuilder->get_widget("partialResultStringEntry", entry);
-  entry->set_sensitive(false);
+  //Rubin Du 2024: Removed spurious code, restructured graying out of fields
+  //attributesRefBuilder->get_widget("partialResultStringEntry", entry);
+  //entry->set_sensitive(false);
 
   attributesRefBuilder->get_widget("groupNameEntry", entry);
   entry->set_sensitive(true);
+
+  //Checks if modifiers are applied to sound or partials
+  attributesView->modified();
+  Gtk::ComboBox* combobox;
+  attributesRefBuilder->get_widget("applyHowCombobox", combobox);
+  Gtk::TreeModel::iterator iter = combobox->get_active();
+
+  if(iter)
+  {
+    Gtk::TreeModel::Row row = *iter;
+    if(row)
+    {
+      auto applyType = row[applyHowColumns.m_col_name];
+      attributesRefBuilder->get_widget("partialResultStringEntry", entry);
+      if (applyType == "SOUND") {
+        entry->set_sensitive(false);
+      } else if (applyType == "PARTIAL") {  //If partials, only allow partialResultStringEntry to be modified
+        entry->set_sensitive(type!=modifierDetune); //if type is detune prevent all inputs since it's invalid
+
+        attributesRefBuilder->get_widget("probablityEnvelopeEntry", entry);
+        entry->set_sensitive(false);
+
+        attributesRefBuilder->get_widget("ampValueEnvelopeEntry", entry);
+        entry->set_sensitive(false);
+
+        attributesRefBuilder->get_widget("rateValueEnvelopeEntry", entry);
+        entry->set_sensitive(false);
+
+        attributesRefBuilder->get_widget("widthEnvelopeEntry", entry);
+        entry->set_sensitive(false);
+
+        attributesRefBuilder->get_widget("SpreadEntry", entry);
+        entry->set_sensitive(false);
+
+        attributesRefBuilder->get_widget("VelocityEntry", entry);
+        entry->set_sensitive(false);
+
+        attributesRefBuilder->get_widget("DirectionEntry", entry);
+        entry->set_sensitive(false);
+
+        return;
+      }
+    }
+  }
 
   if (type == modifierTremolo|| type == modifierVibrato) {
 
@@ -4254,16 +4299,8 @@ void BottomEventModifierAlignment::on_applyHow_combo_changed(){
       auto applyType = row[applyHowColumns.m_col_name];
       modifier->setApplyHowFlag(row[applyHowColumns.m_col_id]);
 
-      // Any modifiers whose text box state needs to change when applyHow is changed, 
-      // should be changed here 
-
-      // Decide whether to gray out partialResultString
-      attributesRefBuilder->get_widget("partialResultStringEntry", entry);
-      if (applyType == "SOUND") {
-        entry->set_sensitive(false);
-      } else if (applyType == "PARTIAL") {
-        entry->set_sensitive(true);
-      }
+      //Rubin Du 2024: Restructured graying out of fields
+      on_type_combo_changed();
     }
   }
 

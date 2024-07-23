@@ -729,13 +729,14 @@ void Section::NoteInTuplet(Note* current_note, int tuplet_type, int duration) {
       int beats = TimeSignature::Power(2, power_of_2);
       if(beat >= beats){
         current_note->type_out += current_note->pitch_out + Note::int_to_str(unit_in_tuplet / beats);
-        LoudnessMark(current_note);  // this places all the dynamic marks at the beginning of a sound
-        ModifiersMark(current_note);
+        //Rubin Du 2024: The dot has to be right after duration but not after modifier
         beat -= beats;
         if(beat >= beats/2 && beats >= 2){
           current_note->type_out += ".";
           beat -= beats/2;
         }
+        LoudnessMark(current_note);  // this places all the dynamic marks at the beginning of a sound
+        ModifiersMark(current_note);
         break;
       }
       power_of_2--;

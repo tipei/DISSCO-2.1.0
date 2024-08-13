@@ -148,6 +148,10 @@ class MainWindow : public Gtk::Window {
 
     void changeCurrentProjectViewTo(ProjectViewController* _newProject);
     void menuProjectProperties();
+
+    bool CheckTerm(const std::string& command);
+    string GetTerm();
+
     void menuProjectRun();
     void menuProjectGenerateSCFile();
     void menuProjectConfigureNoteModifiers();

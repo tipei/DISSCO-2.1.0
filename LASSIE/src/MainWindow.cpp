@@ -738,6 +738,25 @@ int MainWindow::captureKeyStroke(
 
 //-----------------------------------------------------------------------------
 
+bool MainWindow::CheckTerm(const std::string& command) {
+    std::string check = "command -v " + command + " > /dev/null 2>&1";
+    return system(check.c_str()) == 0;
+}
+
+std::string MainWindow::GetTerm() {
+    std::vector<std::string> terminals = {
+      "xterm", "gnome-terminal"
+    };
+    
+    for (const auto& terminal : terminals) {
+        if (CheckTerm(terminal)) {
+            return terminal;
+        }
+    }
+    
+    return "";
+}
+
 void MainWindow::menuProjectRun(){
   Gtk::Dialog* runDialog;
 
@@ -815,9 +834,15 @@ void MainWindow::menuProjectRun(){
       //if (fork() == 0){
       //cout<<"this is the child. execute cmod"<<endl;
 
-      string command = "gnome-terminal -e \"bash -c \\\"./cmod " + projectPath
-                         + projectName + ".dissco";
-      command = command + " ; exec bash\\\"\"";
+      string terminal = GetTerm();
+      string command;
+
+      if (!terminal.empty()) {
+        command = terminal + " -e \"bash -c './cmod " + projectPath + projectName + ".dissco; exec bash'\"";
+      } else {
+          command = "tmux new-session -s mysession \"bash -c './cmod " + projectPath + projectName + ".dissco; exec bash'\"";
+      }
+
       system(command.c_str()) ;
       //yy_delete_buffer(newParserBuffer);
 

@@ -20,7 +20,7 @@ project "lass"
   includedirs {"/usr/local/include"}
   kind "StaticLib"
   targetdir "lib"
-  buildoptions {"-Wno-deprecated -Wall -Wextra", "-gstabs"}
+  buildoptions {"-Wno-deprecated -Wall -Wextra", "-g"}
   configuration "Debug" flags(DebugFlags)
   configuration "Release" flags(ReleaseFlags)
 
@@ -30,7 +30,7 @@ project "parser"
   files {"CMOD/src/parser/lex.yy.c"}
   kind "StaticLib"
   targetdir "lib"
-  buildoptions {"-gstabs"}
+  buildoptions {"-g"}
   configuration "Debug" flags(DebugFlags)
   configuration "Release" flags(ReleaseFlags)
 
@@ -50,7 +50,7 @@ project "lcmod"
   excludes {"CMOD/src/Main.*", "CMOD/src/test/**"}
   kind "StaticLib"
   targetdir "lib"
-  buildoptions {"-Wno-deprecated", "-gstabs", "-g"}
+  buildoptions {"-Wno-deprecated", "-g"}
   configuration "Debug" flags(DebugFlags)
   configuration "Release" flags(ReleaseFlags)
 
@@ -62,7 +62,7 @@ project "cmod"
   libdirs {"lib", "/usr/local/lib"}
   links {"lcmod", "lass", "parser","muparser", "pthread", "sndfile"}
   linkoptions{"-lxerces-c", "-rdynamic"}
-  buildoptions {"-Wno-deprecated", "-gstabs", "-g"}
+  buildoptions {"-Wno-deprecated", "-g"}
   configuration "Debug" flags(DebugFlags)
   configuration "Release" flags(ReleaseFlags)
   configuration "macosx"
@@ -76,7 +76,7 @@ project "UpgradeProjectFormat"
   libdirs {"lib", "/usr/local/lib"}
   links {"lcmod", "lass", "parser","muparser", "pthread", "sndfile"}
   linkoptions{"-lxerces-c"}
-  buildoptions {"-Wno-deprecated", "-gstabs"}
+  buildoptions {"-Wno-deprecated", "-g"}
   configuration "Debug" flags(DebugFlags)
   configuration "Release" flags(ReleaseFlags)
   configuration "macosx"
@@ -88,7 +88,7 @@ project "lassie"
   files {"LASSIE/src/**.h", "LASSIE/src/**.cpp"}
   excludes {"LASSIE/src/UpgradeProjectFormat.*", "LASSIE/src/test/**"}
   buildoptions {"`pkg-config --cflags gtkmm-2.4`",
-    "-Wno-deprecated", "-gstabs", "-std=c++11"}
+    "-Wno-deprecated", "-g", "-std=c++11"}
   linkoptions {"`pkg-config --libs --cflags gtkmm-2.4`", "-Wno-deprecated", "-lxerces-c"}
   libdirs {"/usr/local/lib"}
   links {"lcmod", "lass", "parser", "pthread", "sndfile"}

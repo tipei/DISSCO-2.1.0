@@ -1,0 +1,11 @@
+/.vscode
+
+Makefile
+*.make
+/build
+/lib
+/obj
+
+lassie
+cmod
+UpgradeProjectFormat

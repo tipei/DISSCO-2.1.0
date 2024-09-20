@@ -11,8 +11,10 @@ ReleaseFlags = {"Optimize"}
 
 solution "dissco"
   configurations {"Debug", "Release"}
+  objdir "obj"
 
 project "lass"
+  location "make" 
   language "C++"
   flags {"StaticRuntime"}
   files {"LASS/src/*.cpp", "LASS/src/*.h"}
@@ -25,6 +27,7 @@ project "lass"
   configuration "Release" flags(ReleaseFlags)
 
 project "parser"
+  location "make" 
   language "C"
   flags {"StaticRuntime"}
   files {"CMOD/src/parser/lex.yy.c"}
@@ -35,6 +38,7 @@ project "parser"
   configuration "Release" flags(ReleaseFlags)
 
 project "muparser"
+  location "make" 
   language "C++"
   flags{"StaticRuntime"}
   files {"CMOD/src/muParser/**.cpp", "CMOD/src/muParser/**.h"}
@@ -44,6 +48,7 @@ project "muparser"
   configuration "Release" flags(ReleaseFlags)
 
 project "lcmod"
+  location "make" 
   language "C++"
   flags {"StaticRuntime"}
   files {"CMOD/src/**.cpp", "CMOD/src/**.h"}
@@ -55,6 +60,7 @@ project "lcmod"
   configuration "Release" flags(ReleaseFlags)
 
 project "cmod"
+  location "make" 
   language "C++"
   flags {"StaticRuntime"}
   files {"CMOD/src/Main.*"}
@@ -69,6 +75,7 @@ project "cmod"
     targetdir "bin"
 
 project "UpgradeProjectFormat"
+  location "make" 
   language "C++"
   flags {"StaticRuntime"}
   files {"LASSIE/src/UpgradeProjectFormat.*"}
@@ -83,6 +90,7 @@ project "UpgradeProjectFormat"
     targetdir "bin"
 
 project "lassie"
+  location "make" 
   language "C++"
   kind "ConsoleApp"
   files {"LASSIE/src/**.h", "LASSIE/src/**.cpp"}
@@ -175,8 +183,8 @@ end
 
 if _ACTION == "clean" then
   print("Removing target and object directories.")
-  os.execute("rm -f *.make")
   os.rmdir("lib")
   os.rmdir("bin")
   os.rmdir("obj")
+  os.rmdir("make")
 end

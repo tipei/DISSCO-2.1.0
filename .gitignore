@@ -1,8 +1,8 @@
 /.vscode
 
 Makefile
+/make
 *.make
-/build
 /lib
 /obj
 

@@ -2938,16 +2938,13 @@ IEvent::IEvent(DOMElement* _domElement){
   childEventDefDurationSieve = getFunctionString(secondLevelElement);
 
   secondLevelElement = secondLevelElement->getNextElementSibling();
-  charBuffer =  (char*)getFunctionString(secondLevelElement).c_str();
-  flagChildEventDef = atoi(charBuffer);
+  flagChildEventDef = stoi(getFunctionString(secondLevelElement));
 
   secondLevelElement = secondLevelElement->getNextElementSibling();
-  charBuffer =  (char*)getFunctionString(secondLevelElement).c_str();
-  flagChildEventDefStartType = atoi(charBuffer);
+  flagChildEventDefStartType = stoi(getFunctionString(secondLevelElement));
 
   secondLevelElement = secondLevelElement->getNextElementSibling();
-  charBuffer =  (char*)getFunctionString(secondLevelElement).c_str();
-  flagChildEventDefDurationType = atoi( charBuffer);
+  flagChildEventDefDurationType = stoi(getFunctionString(secondLevelElement));
 
 
   //layers

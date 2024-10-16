@@ -147,8 +147,9 @@ void Constant::xml_read(XmlReader::xmltag *constanttag)
 //----------------------------------------------------------------------------//
 void Constant::xml_print( ofstream& xmlOutput, list<DynamicVariable*>& dynObjs )
 {
-  dynObjs.size(); //remove warning about unused parameter...
-	xml_print(xmlOutput);
+   int a = dynObjs.size(); //remove warning about unused parameter...
+   (void) a;	
+   xml_print(xmlOutput);
 }
 
 

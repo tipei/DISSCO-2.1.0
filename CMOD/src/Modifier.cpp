@@ -76,18 +76,25 @@ Modifier::Modifier(const Modifier& orig) {
 //----------------------------------------------------------------------------//
 
 Modifier& Modifier::operator=(const Modifier& rhs) {
+  if (this == &rhs) {
+    return *this;
+  }
   type = rhs.type;
   applyHow = rhs.applyHow;
   checkPt = rhs.checkPt;
   partialNum = rhs.partialNum;
   partialResultString = rhs.partialResultString;
 
+  delete probEnv;
   if (rhs.probEnv != NULL) {
     probEnv = new Envelope(*rhs.probEnv);
   } else {
     probEnv = NULL;
   }
-
+  for (auto* env : env_values) {
+    delete env;  
+  }
+  env_values.clear();
   for (int i = 0; i < rhs.env_values.size(); i++) {
     if (rhs.env_values[i] != NULL) {
       env_values.push_back(new Envelope(*rhs.env_values[i]));
@@ -95,6 +102,7 @@ Modifier& Modifier::operator=(const Modifier& rhs) {
       env_values.push_back(NULL);
     }
   }
+  return *this;
 }
 
 //----------------------------------------------------------------------------//

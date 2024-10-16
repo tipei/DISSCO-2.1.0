@@ -979,9 +979,9 @@ void Envelope::xml_read(XmlReader::xmltag * envtag)
   if((value = envtag->findChildParamValue("duration", "value")) != 0)
     setDuration(atof(value));
 
-  if((value = envtag->findChildParamValue("rate", "value")) != 0)
+  if((value = envtag->findChildParamValue("rate", "value")) != 0) {
     setSamplingRate(atoi(value));
-
+  }
     XmlReader::xmltag * segtag;
     while ((segtag = envtag->children->find("segment")) != 0) {
 	    XmlReader::xmltag * xy = segtag->children->find("xyPoint");

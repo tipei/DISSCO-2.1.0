@@ -544,8 +544,8 @@ public:
 
     virtual int getPartialWindowMaxNumPartials(){return partialWindowMaxNumPartials;}
     virtual SpectrumPartial* getSpectrumPartials(){return NULL;}
-    virtual SpectrumPartial* addPartial(){}
-    virtual bool deletePartial(SpectrumPartial* _partial){}
+    virtual SpectrumPartial* addPartial(){return NULL;}
+    virtual bool deletePartial(SpectrumPartial* _partial) {}
 
 
     // Bottom extra info
@@ -594,7 +594,7 @@ public:
     virtual void clearNoteModifiers(){}
     virtual void addNoteModifiers(std::string _modifier){}
     virtual void setStaffNum(std::string _staffs){}
-    virtual std::string getStaffNum(){}
+    virtual std::string getStaffNum(){return "";}
 
 
 

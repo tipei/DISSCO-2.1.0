@@ -112,7 +112,9 @@ std::string FileOperations::saveAs(MainWindow* _mainWindow){//return new path
       }
     }
   }
-  else return "";
+  return "";
+  
+  // return "";
 }
 
 void FileOperations::createDirectories(std::string _pathAndName){
@@ -262,6 +264,7 @@ void fileNameExist::duplicateProjectName(){
 
 
 ProjectViewController* FileOperations::openProject(MainWindow* _mainWindow){
+return NULL;
   //_mainWindow->set_title("LASSIE");
   
   // setup the open project dialog window 

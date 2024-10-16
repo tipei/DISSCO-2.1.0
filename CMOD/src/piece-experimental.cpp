@@ -417,7 +417,7 @@ Piece::~Piece(){
 //Experiment 2
 vector<DOMElement*> Piece::calcEventM(DOMElement* eventElement){
 
-            vector<DOMElement*> childElements;
+      vector<DOMElement*> childElements;
 	    DOMElement* thisEventElement = eventElement->GFEC(); //type
 	    string typeString = XMLTC(thisEventElement);
 	    int type = atoi(typeString.c_str());
@@ -443,8 +443,8 @@ vector<DOMElement*> Piece::calcEventM(DOMElement* eventElement){
 	      DOMElement* childEventDefElement = numChildrenElement->GNES();
 	      DOMElement* childStartTimeElement = childEventDefElement->GFEC();
 	      DOMElement* childTypeElement = childStartTimeElement->GNES();
-cout << "pieceExperimental - childTypeElement=" << childTypeElement << endl;
-int sever; cin >> sever;
+          cout << "pieceExperimental - childTypeElement=" << childTypeElement << endl;
+      int sever; cin >> sever;
 	      DOMElement* childDurationElement = childTypeElement->GNES();
 	      DOMElement* AttackSieveElement = childDurationElement->GNES();
 	      DOMElement* DurationSieveElement = AttackSieveElement->GNES();
@@ -575,6 +575,7 @@ int sever; cin >> sever;
 	  }
 	}
 }
+return childElements;
 }
 
 //Experimental - For now only bottom events
@@ -1442,6 +1443,8 @@ void Piece::functionModifier(DOMElement* functionElement, int maxValue){ //Needs
    return childElements;
   }
 }
+return childElements;
+
 }
 
   double Piece::calculateEntropyRatio(vector<double> sampleData, string partitionMethod, double min, double max){

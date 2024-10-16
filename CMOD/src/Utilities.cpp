@@ -434,6 +434,7 @@ void* Utilities::evaluateObject(string _input,
   else if (_returnType == eventSpec){
     return (void*) getSpectrum(input, _object);
   }
+  return (void*)  NULL;
 }
 
 
@@ -1663,6 +1664,7 @@ cout << "	i=" << i<< " num=" << num << endl;
 
 DOMElement* Utilities::getSPAFunctionElement(void* _object){
   getSPAFunctionElementHelper(_object,NULL,true);
+  
 }
 
 //----------------------------------------------------------------------------//
@@ -1751,6 +1753,7 @@ DOMElement* Utilities::getSPAFunctionElementHelper(void* _object, DOMElement* _S
   else { //function name = SPA
     return SPAElement->getFirstElementChild();
   }
+  return NULL;
 }
 
 //----------------------------------------------------------------------------//
@@ -1848,6 +1851,7 @@ DOMElement* Utilities::getREVFunctionElementHelper(void* _object, DOMElement* _R
   else { // simple or medium or advanced
     return REVElement->getFirstElementChild();
   }
+  return NULL;
 }
 
 
@@ -1955,6 +1959,7 @@ DOMElement* Utilities::getFILFunctionElementHelper(void* _object, DOMElement* _F
   else {
     return FILElement->getFirstElementChild();
   }
+  return NULL;
 }
 
 

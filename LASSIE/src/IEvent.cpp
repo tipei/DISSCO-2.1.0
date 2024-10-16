@@ -239,6 +239,7 @@ std::string IEvent::getEventTypeString(){
     case 14:
       return "Measurement";
   }
+  return "unfounded!";
 }
 
 
@@ -2117,6 +2118,7 @@ string IEvent::getEventFolderName(){
     case 14:
       return "Measurement";
   }
+  return "unfounded!";
 }
 
 
@@ -2417,7 +2419,7 @@ switch(eventType){
 
 
   }
-
+  return "unfounded!";
 }
 
 

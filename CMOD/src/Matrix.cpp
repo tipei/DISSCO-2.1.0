@@ -83,9 +83,13 @@ Matrix::Matrix(const Matrix &orig) {
 //----------------------------------------------------------------------------//
 
 Matrix& Matrix::operator=(const Matrix &orig) {
+  if (this == &orig) {
+	return *this;
+	}
   matr = orig.matr;
   typeLayers = orig.typeLayers;
   typeProb = orig.typeProb;
+  return *this;
 }
 
 //----------------------------------------------------------------------------//

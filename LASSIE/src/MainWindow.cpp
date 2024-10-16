@@ -838,9 +838,9 @@ void MainWindow::menuProjectRun(){
       string command;
 
       if (!terminal.empty()) {
-        command = terminal + " -e \"bash -c './cmod " + projectPath + projectName + ".dissco; exec bash'\"";
+        command = terminal + " -e \"bash -c './cmod " + projectPath + projectName + ".dissco; exec bash'\" &";
       } else {
-          command = "tmux new-session -s mysession \"bash -c './cmod " + projectPath + projectName + ".dissco; exec bash'\"";
+          command = "tmux new-session -s mysession \"bash -c './cmod " + projectPath + projectName + ".dissco; exec bash'\" &";
       }
 
       system(command.c_str()) ;

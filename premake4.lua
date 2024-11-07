@@ -35,6 +35,7 @@ project "parser"
   files {"CMOD/src/parser/lex.yy.c"}
   kind "StaticLib"
   targetdir "lib"
+  buildoptions {"-Wno-deprecated"}
   configuration "Debug" 
     flags(DebugFlags)
     buildoptions {"-g"}
@@ -47,6 +48,7 @@ project "muparser"
   files {"CMOD/src/muParser/**.cpp", "CMOD/src/muParser/**.h"}
   kind "StaticLib"
   targetdir "lib"
+   buildoptions {"-Wno-deprecated"}
   configuration "Debug" 
     flags(DebugFlags)
     buildoptions {"-g"}
@@ -92,7 +94,7 @@ project "UpgradeProjectFormat"
   libdirs {"lib", "/usr/local/lib"}
   links {"lcmod", "lass", "parser","muparser", "pthread", "sndfile"}
   linkoptions{"-lxerces-c"}
-  buildoptions {"-Wno-deprecated"}
+  buildoptions {"-Wno-deprecated -Wno-register"}
   configuration "Debug" 
     flags(DebugFlags)
     buildoptions {"-g"}
@@ -107,7 +109,7 @@ project "lassie"
   files {"LASSIE/src/**.h", "LASSIE/src/**.cpp"}
   excludes {"LASSIE/src/UpgradeProjectFormat.*", "LASSIE/src/test/**"}
   buildoptions {"`pkg-config --cflags gtkmm-2.4`",
-    "-Wno-deprecated", "-std=c++11"}
+    "-Wno-deprecated-declarations -Wno-deprecated", "-std=c++11"}
   linkoptions {"`pkg-config --libs --cflags gtkmm-2.4`", "-Wno-deprecated", "-lxerces-c"}
   libdirs {"/usr/local/lib"}
   links {"lcmod", "lass", "parser", "pthread", "sndfile"}

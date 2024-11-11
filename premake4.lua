@@ -11,114 +11,142 @@ ReleaseFlags = {"Optimize"}
 
 solution "dissco"
   configurations {"Debug", "Release"}
-  objdir "obj"
 
-project "lass"
-  location "make" 
+  project "lass"
   language "C++"
   flags {"StaticRuntime"}
-  files {"LASS/src/*.cpp", "LASS/src/*.h"}
+  files {
+    "LASS/src/*.cpp",
+    "LASS/src/*.h"
+  }
   excludes {"LASS/src/test/**"}
-  includedirs {"/usr/local/include"}
+  includedirs {
+    "/usr/local/include",
+    "CUDA/src",               -- Include directory for your CUDA files
+    "/usr/local/cuda/include" -- Include directory for CUDA headers
+  }
   kind "StaticLib"
   targetdir "lib"
-  buildoptions {"-Wno-deprecated -Wall -Wextra"}
-  configuration "Debug" 
-    flags(DebugFlags)
-    buildoptions {"-g"}
+  buildoptions {"-Wno-deprecated -Wall -Wextra", "-gstabs"}
+  
+  -- Compile the CUDA code before building the static library
+  prebuildcommands {
+    "mkdir -p $(OBJDIR)",
+    "nvcc -c CUDA/src/FilterGPU.cu -o $(OBJDIR)/FilterGPU.o"
+  }
+  
+  -- Add the CUDA object file into the static library after it's built
+  postbuildcommands {
+    "ar r lib/liblass.a $(OBJDIR)/FilterGPU.o"
+  }
+  
+  configuration "Debug" flags(DebugFlags)
   configuration "Release" flags(ReleaseFlags)
 
 project "parser"
-  location "make" 
   language "C"
   flags {"StaticRuntime"}
   files {"CMOD/src/parser/lex.yy.c"}
   kind "StaticLib"
   targetdir "lib"
-  buildoptions {"-Wno-deprecated"}
-  configuration "Debug" 
-    flags(DebugFlags)
-    buildoptions {"-g"}
+  buildoptions {"-gstabs"}
+  configuration "Debug" flags(DebugFlags)
   configuration "Release" flags(ReleaseFlags)
 
 project "muparser"
-  location "make" 
   language "C++"
   flags{"StaticRuntime"}
   files {"CMOD/src/muParser/**.cpp", "CMOD/src/muParser/**.h"}
   kind "StaticLib"
   targetdir "lib"
-   buildoptions {"-Wno-deprecated"}
-  configuration "Debug" 
-    flags(DebugFlags)
-    buildoptions {"-g"}
+  configuration "Debug" flags(DebugFlags)
   configuration "Release" flags(ReleaseFlags)
 
 project "lcmod"
-  location "make" 
   language "C++"
   flags {"StaticRuntime"}
   files {"CMOD/src/**.cpp", "CMOD/src/**.h"}
   excludes {"CMOD/src/Main.*", "CMOD/src/test/**"}
   kind "StaticLib"
   targetdir "lib"
-  buildoptions {"-Wno-deprecated"}
-  configuration "Debug" 
-    flags(DebugFlags)
-    buildoptions {"-g"}
+  buildoptions {"-Wno-deprecated", "-gstabs", "-g"}
+  configuration "Debug" flags(DebugFlags)
   configuration "Release" flags(ReleaseFlags)
 
-project "cmod"
-  location "make" 
+  project "cmod"
   language "C++"
   flags {"StaticRuntime"}
   files {"CMOD/src/Main.*"}
   kind "ConsoleApp"
-  libdirs {"lib", "/usr/local/lib"}
-  links {"lcmod", "lass", "parser","muparser", "pthread", "sndfile"}
+  libdirs {
+    "lib",
+    "/usr/local/lib",
+    "/usr/local/cuda/lib64" -- Add the CUDA library directory
+  }
+  links {
+    "lcmod", "lass", "parser","muparser", "pthread", "sndfile",
+    "cudart"   -- Link against the CUDA runtime library
+  }
   linkoptions{"-lxerces-c", "-rdynamic"}
-  buildoptions {"-Wno-deprecated"}
-  configuration "Debug" 
-    flags(DebugFlags)
-    buildoptions {"-g"}
+  buildoptions {"-Wno-deprecated", "-gstabs", "-g"}
+  configuration "Debug" flags(DebugFlags)
   configuration "Release" flags(ReleaseFlags)
   configuration "macosx"
     targetdir "bin"
 
-project "UpgradeProjectFormat"
-  location "make" 
-  language "C++"
-  flags {"StaticRuntime"}
-  files {"LASSIE/src/UpgradeProjectFormat.*"}
-  kind "ConsoleApp"
-  libdirs {"lib", "/usr/local/lib"}
-  links {"lcmod", "lass", "parser","muparser", "pthread", "sndfile"}
-  linkoptions{"-lxerces-c"}
-  buildoptions {"-Wno-deprecated -Wno-register"}
-  configuration "Debug" 
-    flags(DebugFlags)
-    buildoptions {"-g"}
-  configuration "Release" flags(ReleaseFlags)
-  configuration "macosx"
-    targetdir "bin"
+    project "UpgradeProjectFormat"
+    language "C++"
+    flags {"StaticRuntime"}
+    files {"LASSIE/src/UpgradeProjectFormat.*"}
+    kind "ConsoleApp"
+    libdirs {
+      "lib",
+      "/usr/local/lib",
+      "/usr/local/cuda/lib64" -- Add CUDA library directory
+    }
+    includedirs {
+      "/usr/local/include",
+      "/usr/local/cuda/include" -- Add CUDA include directory
+    }
+    links {
+      "lcmod", "lass", "parser", "muparser", "pthread", "sndfile",
+      "cudart" -- Link against the CUDA runtime library
+    }
+    linkoptions { "-lxerces-c" }
+    buildoptions { "-Wno-deprecated", "-gstabs" }
+    configuration "Debug" flags(DebugFlags)
+    configuration "Release" flags(ReleaseFlags)
+    configuration "macosx"
+      targetdir "bin"
 
-project "lassie"
-  location "make" 
-  language "C++"
-  kind "ConsoleApp"
-  files {"LASSIE/src/**.h", "LASSIE/src/**.cpp"}
-  excludes {"LASSIE/src/UpgradeProjectFormat.*", "LASSIE/src/test/**"}
-  buildoptions {"`pkg-config --cflags gtkmm-2.4`",
-    "-Wno-deprecated-declarations -Wno-deprecated", "-std=c++11"}
-  linkoptions {"`pkg-config --libs --cflags gtkmm-2.4`", "-Wno-deprecated", "-lxerces-c"}
-  libdirs {"/usr/local/lib"}
-  links {"lcmod", "lass", "parser", "pthread", "sndfile"}
-  configuration "Debug" 
-    flags(DebugFlags)
-    buildoptions {"-g"}
-  configuration "Release" flags(ReleaseFlags)
-  configuration "macosx"
-    targetdir "bin"
+      project "lassie"
+      language "C++"
+      kind "ConsoleApp"
+      files {"LASSIE/src/**.h", "LASSIE/src/**.cpp"}
+      excludes {"LASSIE/src/UpgradeProjectFormat.*", "LASSIE/src/test/**"}
+      buildoptions {
+        "`pkg-config --cflags gtkmm-2.4`",
+        "-Wno-deprecated",
+        "-gstabs",
+        "-std=c++11"
+      }
+      linkoptions {
+        "`pkg-config --libs --cflags gtkmm-2.4`",
+        "-Wno-deprecated",
+        "-lxerces-c"
+      }
+      libdirs {
+        "/usr/local/lib",
+        "/usr/local/cuda/lib64" -- Add the CUDA library directory
+      }
+      links {
+        "lcmod", "lass", "parser", "pthread", "sndfile",
+        "cudart"   -- Link against the CUDA runtime library
+      }
+      configuration "Debug" flags(DebugFlags)
+      configuration "Release" flags(ReleaseFlags)
+      configuration "macosx"
+        targetdir "bin"
 
     -- project "lassie_test"
     -- language "C++"
@@ -198,8 +226,8 @@ end
 
 if _ACTION == "clean" then
   print("Removing target and object directories.")
+  os.execute("rm -f *.make")
   os.rmdir("lib")
   os.rmdir("bin")
   os.rmdir("obj")
-  os.rmdir("make")
 end

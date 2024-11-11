@@ -28,6 +28,10 @@
 #include "AllPassFilter.h"
 #include "Reverb.h"
 #include "Types.h"
+#include "Filter.h"
+#include <chrono>
+
+#include "../../CUDA/src/FilterGPU.h"
 
 //----------------------------------------------------------------------------//
 
@@ -280,12 +284,27 @@ m_sample_type Reverb::do_reverb(m_sample_type x_t, float x_value, Envelope *perc
   y += lpcfilter[5]->do_filter(x_t);
   y /= (m_sample_type)REVERB_NUM_COMB_FILTERS;
 
+
   // after adding up the results, run it through an allpass filter
   y = apfilter->do_filter(y);
   // Mix it with the input sound
   float durationofEnv = percentReverb->getDuration();
   float EnvelopeValueAtx = percentReverb->getValue(x_value,durationofEnv);
   y = (EnvelopeValueAtx*y) + ((1 - EnvelopeValueAtx)*x_t);
+  
+  if(x_at == 0)
+    cout<<"y0 "<<y<<endl<<"EvenlopeValueAtx "<<EnvelopeValueAtx<<endl;
+  
+  if(x_at == 1000)
+    cout<<"y1000 "<<y<<endl<<"EvenlopeValueAtx "<<EnvelopeValueAtx<<endl;
+  
+  if(x_at == 10000)
+    cout<<"y10000 "<<y<<endl<<"EvenlopeValueAtx "<<EnvelopeValueAtx<<endl;
+  
+  if(x_at == 100000)
+    cout<<"y100000 "<<y<<endl<<"EvenlopeValueAtx "<<EnvelopeValueAtx<<endl;
+  x_at++;
+
   return y;
 }
 
@@ -385,21 +404,40 @@ SoundSample *Reverb::do_reverb_SoundSample(SoundSample *inWave)
 }
 SoundSample *Reverb::do_reverb_SoundSample(SoundSample *inWave, Envelope *percentReverbinput)
 {
-  int i;
-  SoundSample *outWave;
-  // delete percentReverb;
-  // percentReverb = new Envelope(*percentReverbinput);
 
+  int i;
+  SoundSample *outWaveG, *outWave;  
   Envelope* temp = new Envelope(*percentReverbinput);
   delete percentReverb;
   percentReverb = temp;
-  // create new SoundSample
+
+  auto t0 = std::chrono::high_resolution_clock::now();
+  outWaveG=do_reverb_SoundSample_GPU(inWave, percentReverb, lpcfilter, apfilter);
+  auto t1 = std::chrono::high_resolution_clock::now();
+  auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t1 - t0 ).count();
+  std::cout << "GPU Runtime: " << duration << std::endl;
+
+  //Envelope* temp = new Envelope(*percentReverbinput);
+  //delete percentReverb;
+  //percentReverb = temp;
+  //// create new SoundSample
+  t0 = std::chrono::high_resolution_clock::now();
   outWave = new SoundSample(inWave->getSampleCount(),
 			    inWave->getSamplingRate());
 
+  x_at = 0;
   for(i=0;i<inWave->getSampleCount();i++)
     (*outWave)[i] = do_reverb((*inWave)[i],(float) i / inWave->getSampleCount()
 			      , percentReverb);
+  t1 = std::chrono::high_resolution_clock::now();
+  duration = std::chrono::duration_cast<std::chrono::microseconds>( t1 - t0 ).count();
+  std::cout << "CPU Runtime: " << duration << std::endl;
+
+  //for(i=0;i<inWave->getSampleCount();i++){
+  //  if ((*outWaveG)[i] != (*outWave)[i])
+  //    cout<<"Diff at "<<i<<" "<<(*outWaveG)[i]<<" "<<(*outWave)[i]<<endl;
+  //  
+  //}
 
   return outWave;
 }

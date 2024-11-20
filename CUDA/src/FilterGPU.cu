@@ -12,6 +12,48 @@ do {                                                                         \
     }                                                                        \
 } while (0)
 
+__global__ void BiQuadFilterGPU(float *inputSample, float* outputSample, float a0, float a1, float a2, float b0, float b1, float b2, long sampleSize){
+    float ba0=b0/a0, ba1=b1/a0, ba2=b2/a0, ba3=a1/a0, ba4=a2/a0, bb3, bb4;
+    int tx = threadIdx.x, idx;
+    __shared__ float Z0[257], Z1[257];
+    float *Zsrc=Z0, *Zdest=Z1, *Ztemp;
+
+    if(tx==0){
+        Zsrc[tx+1]=ba0*inputSample[tx];
+        Zsrc[0]=0;
+        Zdest[0]=0;
+    }
+    else if(tx==1){
+        Zsrc[tx+1]=ba0*inputSample[tx]+ba1*inputSample[tx-1];
+    }
+    else
+        Zsrc[tx+1]=ba0*inputSample[tx]+ba1*inputSample[tx-1]+ba2*inputSample[tx-2];
+
+    bb3=ba3;
+    bb4=ba4;
+    for (int off = 1; off < pb*blockDim.x; off *= 2) {
+        __syncthreads();
+        if (tx >= off) {
+            Zdest[tx+1] = Zsrc[tx+1]+bb3*Zsrc[tx+1 - off]+bb4*Zsrc[tx - off];
+        }
+        else 
+            Zdest[tx+1] = Zsrc[tx+1];
+
+        bb3*=bb3;
+        bb4*=bb4;
+        Ztemp=Zsrc;
+        Zsrc=Zdest;
+        Zdest=Ztemp;
+    }
+
+
+
+
+    
+    
+
+}
+
 __global__ void LPCombFilterGPU(float *inputSample, float* outputSample, float inputGain, long inputDelay, float inputLpf_gain, long sampleSize){
     float gain=inputGain, lpf_gain=inputLpf_gain;
     double gaine;

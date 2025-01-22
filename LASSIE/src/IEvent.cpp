@@ -2741,7 +2741,6 @@ string IEvent::getXMLNote(){
 
 void IEvent::buildNonEventFromDOM(DOMElement* _element){
   DOMCharacterData* textData;
-  char* charBuffer;
   if (eventType == eventSound){
     extraInfo = (EventExtraInfo*) new SoundExtraInfo();
     extraInfo->setNumPartials(getFunctionString(_element));
@@ -2762,8 +2761,7 @@ void IEvent::buildNonEventFromDOM(DOMElement* _element){
         thisPartialElement = spectrumGenElement->getNextElementSibling()->getFirstElementChild();
       }
       //2. spectrum is not present, do nothing
-    }
-    else if (int(next_fun[11]) == 83 && int(next_fun[12]) == 112) {
+    } else if (int(next_fun[11]) == 83 && int(next_fun[12]) == 112) {
       //if spectrum is present and filled
       extraInfo->setSpectrumGenBuilder(getFunctionString(spectrumGenElement));
       thisPartialElement = spectrumGenElement->getNextElementSibling()->getFirstElementChild();
@@ -2850,7 +2848,7 @@ IEvent::IEvent(DOMElement* _domElement){
 
   DOMElement* eventNameElement = eventTypeElement->getNextElementSibling();
   textData = ( DOMCharacterData*) eventNameElement->getFirstChild();
-  charBuffer= XMLString::transcode(textData->getData());
+  charBuffer = XMLString::transcode(textData->getData());
   eventName = charBuffer;
   XMLString::release(&charBuffer);
 
@@ -2877,22 +2875,18 @@ IEvent::IEvent(DOMElement* _domElement){
   timeSignatureEntry2 = getFunctionString(secondLevelElement);
 
 
-  //Tempo
+  // Tempo
 
   thisElement = thisElement->getNextElementSibling();
   secondLevelElement = thisElement->getFirstElementChild();
-  charBuffer = (char*)getFunctionString(secondLevelElement).c_str();
-  tempoMethodFlag = atoi(charBuffer);
+  tempoMethodFlag = stoi(getFunctionString(secondLevelElement));
 
   secondLevelElement = secondLevelElement->getNextElementSibling();
-  charBuffer= XMLString::transcode(textData->getData());
-  charBuffer =  (char*)getFunctionString(secondLevelElement).c_str();
-
-  tempoPrefix = (TempoPrefix) atoi(charBuffer);
+  // charBuffer= XMLString::transcode(textData->getData()); // what is this doing? -Jacob, 1/22/25
+  tempoPrefix = (TempoPrefix)stoi(getFunctionString(secondLevelElement));
 
   secondLevelElement = secondLevelElement->getNextElementSibling();
-  charBuffer =  (char*)getFunctionString(secondLevelElement).c_str();
-  tempoNoteValue = (TempoNoteValue)atoi(charBuffer);
+  tempoNoteValue = (TempoNoteValue)stoi(getFunctionString(secondLevelElement));
 
   secondLevelElement = secondLevelElement->getNextElementSibling();
   tempoFractionEntry1 = getFunctionString(secondLevelElement);
@@ -2909,8 +2903,7 @@ IEvent::IEvent(DOMElement* _domElement){
 
   thisElement = thisElement->getNextElementSibling();
   secondLevelElement = thisElement->getFirstElementChild();
-  charBuffer =  (char*)getFunctionString(secondLevelElement).c_str();
-  flagNumChildren = atoi(charBuffer);
+  flagNumChildren = stoi(getFunctionString(secondLevelElement));
 
   secondLevelElement = secondLevelElement->getNextElementSibling();
   numChildrenEntry1 = getFunctionString(secondLevelElement);
@@ -3010,14 +3003,12 @@ IEvent::BottomEventExtraInfo::BottomEventExtraInfo(int _childTypeFlag, DOMElemen
   DOMElement* thisElement = _thisElement->getFirstElementChild()->getFirstElementChild();
 
   char* charBuffer;
-  charBuffer =  (char*)getFunctionString(thisElement).c_str();
-  frequencyFlag = atoi(charBuffer);
+  frequencyFlag = stoi(getFunctionString(thisElement));
 
 
 
   thisElement = thisElement->getNextElementSibling();
-  charBuffer =  (char*)getFunctionString(thisElement).c_str();
-  frequencyContinuumFlag = atoi( charBuffer);
+  frequencyContinuumFlag = stoi(getFunctionString(thisElement));
 
   thisElement = thisElement->getNextElementSibling();
   frequencyEntry1 = getFunctionString(thisElement);
@@ -3070,15 +3061,11 @@ EventBottomModifier* IEvent::BottomEventExtraInfo::buildModifiersFromDOMElement(
 
   EventBottomModifier* currentModifier = new EventBottomModifier();
 
-
   DOMElement* thisElement = _thisModifierElement->getFirstElementChild();
-  char* charBuffer;
-  charBuffer =  (char*)getFunctionString(thisElement).c_str();
-  currentModifier->setModifierType((ModifierType) atoi(charBuffer));
+  currentModifier->setModifierType((ModifierType)stoi(getFunctionString(thisElement)));
 
   thisElement = thisElement->getNextElementSibling();
-  charBuffer =  (char*)getFunctionString(thisElement).c_str();
-  currentModifier->setApplyHowFlag( atoi( charBuffer));
+  currentModifier->setApplyHowFlag(stoi(getFunctionString(thisElement)));
 
   thisElement = thisElement->getNextElementSibling();
   currentModifier->setProbability(getFunctionString(thisElement));
@@ -3086,10 +3073,8 @@ EventBottomModifier* IEvent::BottomEventExtraInfo::buildModifiersFromDOMElement(
   thisElement = thisElement->getNextElementSibling();
   currentModifier->setAmpValue(getFunctionString(thisElement));
 
-
   thisElement = thisElement->getNextElementSibling();
   currentModifier->setRateValue(getFunctionString(thisElement));
-
 
   thisElement = thisElement->getNextElementSibling();
   currentModifier->setWidth(getFunctionString(thisElement));
@@ -3131,15 +3116,19 @@ EventDiscretePackage::EventDiscretePackage(DOMElement* _thisPackageElement){
     charBuffer = XMLString::transcode(textData->getData());
     eventName = charBuffer;
     XMLString::release(&charBuffer);
-  } else eventName = "";
+  } else {
+    eventName = "";
+  }
 
   thisElement = thisElement->getNextElementSibling();
   textData = ( DOMCharacterData*) thisElement->getFirstChild();
   if (textData){
     charBuffer = XMLString::transcode(textData->getData());
-    eventType = (EventType) atoi( charBuffer);
+    eventType = (EventType)atoi(charBuffer);
     XMLString::release(&charBuffer);
-  } else eventType = (EventType)0;
+  } else {
+    eventType = (EventType)0;
+  }
 
   thisElement = thisElement->getNextElementSibling();
   textData = ( DOMCharacterData*) thisElement->getFirstChild();
@@ -3147,9 +3136,11 @@ EventDiscretePackage::EventDiscretePackage(DOMElement* _thisPackageElement){
     charBuffer = XMLString::transcode(textData->getData());
     weight = charBuffer;
     XMLString::release(&charBuffer);
-  } else weight = "";
+  } else {
+    weight = "";
+  }
 
-    thisElement = thisElement->getNextElementSibling();
+  thisElement = thisElement->getNextElementSibling();
   textData = ( DOMCharacterData*) thisElement->getFirstChild();
   if (textData){
     charBuffer = XMLString::transcode(textData->getData());
@@ -3157,29 +3148,35 @@ EventDiscretePackage::EventDiscretePackage(DOMElement* _thisPackageElement){
     XMLString::release(&charBuffer);
   } else attackEnv = "";
 
-    thisElement = thisElement->getNextElementSibling();
+  thisElement = thisElement->getNextElementSibling();
   textData = ( DOMCharacterData*) thisElement->getFirstChild();
   if (textData){
     charBuffer = XMLString::transcode(textData->getData());
     attackEnvScale = charBuffer;
     XMLString::release(&charBuffer);
-  } else attackEnvScale = "";
+  } else {
+    attackEnvScale = "";
+  }
 
-    thisElement = thisElement->getNextElementSibling();
+  thisElement = thisElement->getNextElementSibling();
   textData = ( DOMCharacterData*) thisElement->getFirstChild();
   if (textData){
     charBuffer = XMLString::transcode(textData->getData());
     durationEnv = charBuffer;
     XMLString::release(&charBuffer);
-  } else durationEnv = "";
+  } else {
+    durationEnv = "";
+  }
 
-    thisElement = thisElement->getNextElementSibling();
+  thisElement = thisElement->getNextElementSibling();
   textData = ( DOMCharacterData*) thisElement->getFirstChild();
   if (textData){
     charBuffer = XMLString::transcode(textData->getData());
     durationEnvScale = charBuffer;
     XMLString::release(&charBuffer);
-  } else durationEnvScale = "";
+  } else {
+    durationEnvScale = "";
+  }
 
 }
 
@@ -3209,9 +3206,7 @@ std::string IEvent::getFunctionString(DOMElement* _thisFunctionElement){
   DOMCharacterData* textData;
   string returnString;
   DOMNode* child = _thisFunctionElement->getFirstChild();
-  if (child ==NULL){ //not containing any child, return string
-
-
+  if (child == NULL){ //not containing any child, return string
     return "";
   }
 

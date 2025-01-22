@@ -109,7 +109,7 @@ typedef enum{
 
 typedef enum {
   tempoNoteValueWhole = 0,
-  tempoNoteValueHalf =1,
+  tempoNoteValueHalf = 1,
   tempoNoteValueQuarter = 2,
   tempoNoteValueEighth = 3,
   tempoNoteValueSixteenth = 4,
@@ -117,6 +117,7 @@ typedef enum {
 } TempoNoteValue;
 
 
+// these are a bit concerning for readability purposes -Jacob, 1/22/25
 #define GFEC getFirstElementChild  //for easy coding
 #define GNES getNextElementSibling
 #define XMLTC Utilities::XMLTranscode

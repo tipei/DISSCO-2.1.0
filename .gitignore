@@ -9,3 +9,6 @@ Makefile
 lassie
 cmod
 UpgradeProjectFormat
+
+# macOS
+.DS_Store

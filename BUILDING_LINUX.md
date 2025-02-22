@@ -1,8 +1,8 @@
 Building on Linux 
 =================
 (WIP)
-Preliminary Requirements
---------------------------
+Prerequisites
+-------------
 
 The following are *necessary* to compile CMOD and LASS:
 

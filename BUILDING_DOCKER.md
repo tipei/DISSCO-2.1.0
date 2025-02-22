@@ -1,8 +1,8 @@
 Building for Docker 
 =================
 
-Preliminary Requirements
---------------------------
+Prerequisites
+-------------
 
 Of course, you must install Docker (either Desktop or command line is fine).
 

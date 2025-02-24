@@ -1,5 +1,7 @@
 /.vscode
 
+*.swp
+
 Makefile
 /make
 *.make

@@ -193,7 +193,6 @@ MainWindow::MainWindow(){
       Gtk::Stock::OPEN,
       "_Open an existing project",
       "Open an existing project"),
-    //sigc::mem_fun(*this, &MainWindow::menuFileOpen));
     sigc::mem_fun(*this, &MainWindow::menuFileOpenXML));
   menuRefActionGroup->add(
     Gtk::Action::create(
@@ -473,38 +472,6 @@ void MainWindow::menuFileNewObject(){
     projectView->insertObject();
   }
 }
-
-
-//-----------------------------------------------------------------------------
-
-void MainWindow::menuFileOpen(){
-  ProjectViewController* openProject = FileOperations::openProject(this);
-
-  if(openProject!= NULL){
-    menuRefActionGroup->get_action("FileNewObject")->set_sensitive(true);
-    menuRefActionGroup->get_action("FileSave")->set_sensitive(true);
-    menuRefActionGroup->get_action("FileSaveAs")->set_sensitive(true);
-    menuRefActionGroup->get_action("ProjectProperties")->set_sensitive(true);
-    menuRefActionGroup->get_action("Run")->set_sensitive(true);
-    menuRefActionGroup->get_action(
-      "ConfigureNoteModifiers")->set_sensitive(true);
-    disableNewAndOpenProject();
-    projects.push_back(openProject);
-// cout << openProject << endl;
-    MainWindow::includeUi_info(openProject->getPathAndName(),"add");
-    changeCurrentProjectViewTo(openProject);
-    std::string title = " - LASSIE";
-    title = openProject->getPathAndName() + title;
-    set_title(title);
-    openProject->setProperties();
-
-    envelopeLibraryWindow->setActiveProject(openProject);
-    markovModelLibraryWindow->setActiveProject(openProject);
-
-
-  }
-}
-
 
 //-----------------------------------------------------------------------------
 

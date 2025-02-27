@@ -40,7 +40,6 @@ class MainWindow;
 // define namespace
 namespace FileOperations {
   ProjectViewController* newProject(MainWindow* _mainWindow);
-  ProjectViewController* openProject(MainWindow* _mainWindow);
   ProjectViewController* openXMLProject(MainWindow* _mainWindow);
   std::string saveAs(MainWindow* _mainWindow);//return new path
   std::string pickDatFile(MainWindow* _mainWindow);

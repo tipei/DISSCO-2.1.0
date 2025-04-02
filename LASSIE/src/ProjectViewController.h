@@ -105,6 +105,7 @@ public:
   void insertObject();
   void cleanUpContents();
   std::string getPathAndName();
+  std::string getProjectTitle() { return projectTitle; }
   void showAttributes(IEvent* _event);
   void refreshObjectNameInPalette(IEvent* _event);
   void setProperties();

@@ -145,7 +145,19 @@ extern FILE* yyin;
 #endif /* __ia64__ */
 #endif
 
+bool marked_as_unsaved = false; /* to be safe that we don't overwrite files that just happen to begin with '*' */
 
+/** \namespace \brief helper functions to be used in this file _only_ **/
+namespace MWHelper {
+  std::string formatProjectViewWindowTitle(std::string pathAndName, std::string projectTitle, bool need_to_save){
+    std::string title = pathAndName + "/" +  projectTitle +  ".dissco - LASSIE";
+    if(need_to_save){
+      title = "*" + title;
+      marked_as_unsaved = true;
+    }
+    return title;
+  }
+}
 
 /*! \brief The constructor of MainWindow
 *
@@ -458,8 +470,8 @@ void MainWindow::menuFileNewProject(){
     MainWindow::includeUi_info(newProject->getPathAndName(),"add");
     changeCurrentProjectViewTo(newProject);
 
-    std::string title = " - LASSIE";
-    title = "*"+ newProject->getPathAndName()+ title;
+    const bool unsaved = true;
+    std::string title = MWHelper::formatProjectViewWindowTitle(newProject->getPathAndName(), newProject->getProjectTitle(), unsaved);
     set_title(title);
     newProject->setProperties();
   }
@@ -494,9 +506,11 @@ void MainWindow::menuFileOpenXML(){
 
     MainWindow::includeUi_info(openProject->getPathAndName(),"add");
     changeCurrentProjectViewTo(openProject);
-    std::string title = " - LASSIE";
-    title = openProject->getPathAndName() + title;
+
+    const bool unsaved = false;
+    std::string title = MWHelper::formatProjectViewWindowTitle(openProject->getPathAndName(), openProject->getProjectTitle(), unsaved);
     set_title(title);
+
     openProject->setProperties();
     openProject->initializeModifiers();
   }
@@ -511,30 +525,34 @@ void MainWindow::menuFileSave(){
   }
 }
 
-
 //-----------------------------------------------------------------------------
 
-void MainWindow::setSavedTitle(){
-    std::string title = " - LASSIE";
-    title = projectView->getPathAndName() + title;
-    set_title(title);
+/**  \brief called externally to mark/unmark title with '*' indicator if the file is modified/unmodified, respectively **/
+void MainWindow::markTitleAsUnsaved(bool mark){
+  if(mark == true){
+    set_title("*" + get_title());
+    marked_as_unsaved = true;
+    return;
+  }
+  
+  if(marked_as_unsaved == true) set_title(get_title().erase(0,1));
+  marked_as_unsaved = false;
 }
-
 
 //-----------------------------------------------------------------------------
 
 void MainWindow::menuFileSaveAs(){
 
-	string newPathAndName = FileOperations::saveAs(this);
+	// string newPathAndName = FileOperations::saveAs(this);
 
-	if (newPathAndName =="") {
-		return ;
-	}
-	std::string title = " - LASSIE";
-        title = newPathAndName + title;
-        set_title(title);
+	// if (newPathAndName =="") {
+	// 	return ;
+	// }
+	// std::string title = " - LASSIE";
+  //       title = newPathAndName + title;
+  //       set_title(title);
 
-	projectView->saveAs(newPathAndName);
+	// projectView->saveAs(newPathAndName);
 }
 
 
@@ -769,7 +787,7 @@ void MainWindow::menuProjectRun(){
 
     string pathAndName = projectView->getPathAndName();
     string projectPath = pathAndName + "/";
-    string projectName = FileOperations::stringToFileName(pathAndName);
+    string projectName = projectView->getProjectTitle();
     //string dat = projectPath + projectName + ".dat";
     projectView->setSeed(randomSeedEntry->get_text());
     projectView->save();
@@ -816,17 +834,6 @@ void MainWindow::menuProjectRun(){
       projectView->setSeed(""); //reset seed
     }
 }
-
-
-//-----------------------------------------------------------------------------
-
-void MainWindow::setUnsavedTitle(){
-  std::string title = " - LASSIE";
-  title = "*" + projectView->getPathAndName() + title;
-  set_title(title);
-
-}
-
 
 //-----------------------------------------------------------------------------
 

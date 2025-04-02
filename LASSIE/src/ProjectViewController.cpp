@@ -1476,7 +1476,7 @@ void ProjectViewController::refreshProjectDotDat(){
 
 void ProjectViewController::save(){
   modifiedButNotSaved = false;
-  sharedPointers->mainWindow->setSavedTitle();
+  sharedPointers->mainWindow->markTitleAsUnsaved(false);
 
   eventAttributesView->saveCurrentShownEventData();
   /*
@@ -1918,10 +1918,11 @@ ProjectViewController::ProjectViewController(
   //Configurations
   DOMElement* configuration = root->getFirstElementChild();
   //title
-  DOMElement* element = configuration ->getFirstElementChild();
-  projectTitle = IEvent::getFunctionString( element);
+  /* remove .dissco file extension from project title */
+  projectTitle = _projectTitle.erase(_projectTitle.length() - 7);
 
   //fileFlag
+  DOMElement* element = configuration->getFirstElementChild();
   element = element->getNextElementSibling();
   fileFlag = IEvent::getFunctionString(element);
   //topEvent
@@ -2324,7 +2325,7 @@ void ProjectViewController::projectPropertiesDialogFunctionButtonClicked (){
 void ProjectViewController::modified(){
   if (modifiedButNotSaved == false){
     modifiedButNotSaved = true;
-    sharedPointers->mainWindow->setUnsavedTitle();
+    sharedPointers->mainWindow->markTitleAsUnsaved(true);
 
   }
 }

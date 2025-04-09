@@ -60,7 +60,7 @@ Event::Event(DOMElement* _element,
   //Initialize parameters
   DOMElement* thisEventElement = _element->GFEC();
   string typeString =XMLTC(thisEventElement);
-  type = atoi(typeString.c_str());
+  type = stoi(typeString);
 
   thisEventElement = thisEventElement->GNES();
   name = XMLTC(thisEventElement);

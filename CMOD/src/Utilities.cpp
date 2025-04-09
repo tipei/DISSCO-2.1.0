@@ -127,7 +127,7 @@ Utilities::Utilities(DOMElement* root,
 
    //put the pointer of events and objects into the proper map
    while(thisEventElement){
-     int type = atoi(XMLTranscode(thisEventElement->GFEC()).c_str());
+     int type = stoi(XMLTranscode(thisEventElement->GFEC()));
      string eventName=  XMLTranscode(thisEventElement->GFEC()->GNES());
 
      switch (type){

@@ -257,22 +257,22 @@ Piece::Piece(string _workingPath, string _projectTitle){
 
   // get the staffs number
   
-  numberOfStaff = atoi(XMLTC(element).c_str());
+  numberOfStaff = stoi(XMLTC(element));
   cout <<"numberOfStaff: " << numberOfStaff << endl;
   element = element->GNES();
 
-  numChannels = atoi(XMLTC(element).c_str());
+  numChannels = stoi(XMLTC(element));
   cout << "Channel: " << numChannels << "\n";
   element = element->GNES();
 
-  sampleRate = atoi(XMLTC(element).c_str());
+  sampleRate = stoi(XMLTC(element));
   cout << "Sample Rate: "<< sampleRate << "\n";
   element = element->GNES();
 
-  sampleSize = atoi(XMLTC(element).c_str());
+  sampleSize = stoi(XMLTC(element));
   cout << "Sample Size: "<< sampleSize << "\n";
   element = element->GNES();
-  numThreads = atoi(XMLTC(element).c_str());
+  numThreads = stoi(XMLTC(element));
   element = element->GNES();
   bool outputParticel = (XMLTC(element).compare("True")==0)?true:false;
 
@@ -421,7 +421,7 @@ vector<DOMElement*> Piece::calcEventM(DOMElement* eventElement){
       vector<DOMElement*> childElements;
 	    DOMElement* thisEventElement = eventElement->GFEC(); //type
 	    string typeString = XMLTC(thisEventElement);
-	    int type = atoi(typeString.c_str());
+	    int type = stoi(typeString);
 	    double mVal = 0.0;
 
 	    thisEventElement = thisEventElement->GNES(); //name
@@ -455,13 +455,13 @@ vector<DOMElement*> Piece::calcEventM(DOMElement* eventElement){
 
 	      //Read Flag values (Needed for modification)
 	      string defFlag = XMLTC(methodFlagElement);
-	      int definitionVal = atoi(defFlag.c_str());
+	      int definitionVal = stoi(defFlag);
 
 	      if(definitionVal == 0){     //Only Continuum
 
 		//Calculating start time orignality
 		string startFlag = XMLTC(childStartTypeFlag);
-		int startFlagVal = atoi(startFlag.c_str());
+		int startFlagVal = stoi(startFlag);
 
 	      //layers, initialize child names
 	      thisEventElement = childEventDefElement->GNES();
@@ -521,7 +521,7 @@ vector<DOMElement*> Piece::calcEventM(DOMElement* eventElement){
 		DOMElement* frequencyElement = extraInfo->GFEC();
 		DOMElement* frequencyFlagElement = frequencyElement->GFEC();
 		string flagNum = XMLTC(frequencyFlagElement);
-		int flagVal = atoi(flagNum.c_str());
+		int flagVal = stoi(flagNum);
 
 		if(flagVal == 0){ //Equal Temperament
 		  mVal += EQUAL_TEMP * (log(1 / EQUAL_TEMP)/log(2));
@@ -815,7 +815,7 @@ vector<DOMElement*> Piece::modifyPiece(DOMElement* eventElement){
   vector<DOMElement*> childElements;
   DOMElement* thisEventElement = eventElement->GFEC(); //type
   string typeString = XMLTC(thisEventElement);
-  int type = atoi(typeString.c_str());
+  int type = stoi(typeString);
 
   thisEventElement = thisEventElement->GNES(); //name
   string name = XMLTC(thisEventElement);
@@ -830,7 +830,7 @@ vector<DOMElement*> Piece::modifyPiece(DOMElement* eventElement){
       DOMElement* frequencyElement = extraInfo->GFEC();
       DOMElement* frequencyFlagElement = frequencyElement->GFEC();
       string flagNum = XMLTC(frequencyFlagElement);
-      int flagVal = atoi(flagNum.c_str());
+      int flagVal = stoi(flagNum);
 
       if(flagVal == 0){
         DOMElement* freqEntry1 = frequencyFlagElement->GNES()->GNES();
@@ -843,7 +843,7 @@ vector<DOMElement*> Piece::modifyPiece(DOMElement* eventElement){
         else{
 
           string freqNum = XMLTC(freqEntry1);
-          int freqVal = atoi(freqNum.c_str());
+          int freqVal = stoi(freqNum);
           freqVal = Random::RandInt(8, 80);
 
           char lval[33];
@@ -868,7 +868,7 @@ vector<DOMElement*> Piece::modifyPiece(DOMElement* eventElement){
       else{
 
         string freqNum = XMLTC(freqEntry1);
-        int freqVal = atoi(freqNum.c_str());
+        int freqVal = stoi(freqNum);
         //freqVal = (freqVal + Random::RandInt(0, 10)) % 100;
 
         char lval[33];
@@ -885,7 +885,7 @@ vector<DOMElement*> Piece::modifyPiece(DOMElement* eventElement){
     else if(flagVal == 2){
       DOMElement* continuumFlagElement = frequencyFlagElement->GNES();
       string contflagNum = XMLTC(continuumFlagElement);
-      int contflagVal = atoi(contflagNum.c_str());
+      int contflagVal = stoi(contflagNum);
       DOMElement* freqEntry1 = frequencyFlagElement->GNES()->GNES();
 
       if(freqEntry1->GFEC() != NULL){
@@ -901,7 +901,7 @@ vector<DOMElement*> Piece::modifyPiece(DOMElement* eventElement){
       else{
 
         string freqNum = XMLTC(freqEntry1);
-        int freqVal = atoi(freqNum.c_str());
+        int freqVal = stoi(freqNum);
         if(contflagVal == 0){
          freqVal = Random::RandInt(0, 15000);
       }
@@ -933,7 +933,7 @@ vector<DOMElement*> Piece::modifyPiece(DOMElement* eventElement){
         //cout<<"hey:"<<loudnessvalue[0]<<loudnessvalue[1]<<loudnessvalue[2]<<endl;
 
         string typeString = XMLTC(loudnessElement);
-        int val = atoi(typeString.c_str());
+        int val = stoi(typeString);
         int loudnessNum = val;
         loudnessNum = Random::RandInt(0, 225);
         //cout<<"loudness = "<< loudnessNum<<endl;
@@ -1016,7 +1016,7 @@ void Piece::functionModifier(DOMElement* functionElement, int maxValue){ //Needs
     }
 
     else{
-      int lowBound = atoi(XMLTC(lowBoundElement).c_str());
+      int lowBound = stoi(XMLTC(lowBoundElement));
       lowBound = (lowBound + Random::RandInt(0, maxValue/2)) % (maxValue/2);
       char val[33];
       sprintf(val, "%d", lowBound);
@@ -1032,7 +1032,7 @@ void Piece::functionModifier(DOMElement* functionElement, int maxValue){ //Needs
     }
 
     else{
-      int highBound = atoi(XMLTC(highBoundElement).c_str());
+      int highBound = stoi(XMLTC(highBoundElement));
       highBound = (highBound + Random::RandInt(0, maxValue/2)) % (maxValue/2) + maxValue/2;
       char val[33];
       sprintf(val, "%d", highBound);
@@ -1054,7 +1054,7 @@ void Piece::functionModifier(DOMElement* functionElement, int maxValue){ //Needs
     }
 
     else{
-      double lowBound = atof(XMLTC(lowBoundElement).c_str());
+      double lowBound = stof(XMLTC(lowBoundElement));
       lowBound = fmod((lowBound + Random::Rand(0, maxValue/2)), maxValue/2);
       char val[33];
       sprintf(val, "%f", lowBound);
@@ -1070,7 +1070,7 @@ void Piece::functionModifier(DOMElement* functionElement, int maxValue){ //Needs
     }
 
     else{
-      double highBound = atof(XMLTC(highBoundElement).c_str());
+      double highBound = stof(XMLTC(highBoundElement));
       highBound = fmod((highBound + Random::Rand(0, maxValue/2)), maxValue/2) + maxValue/2;
       char val[33];
       sprintf(val, "%f", highBound);
@@ -1094,7 +1094,7 @@ void Piece::functionModifier(DOMElement* functionElement, int maxValue){ //Needs
     }
 
     else{
-      int indexVal = atoi(XMLTC(indexElement).c_str());
+      int indexVal = stoi(XMLTC(indexElement));
       indexVal = (indexVal + 1)%(list.size() - 1);
       char val[33];
       sprintf(val, "%d", indexVal);
@@ -1119,7 +1119,7 @@ void Piece::functionModifier(DOMElement* functionElement, int maxValue){ //Needs
     }
 
     else{
-      double baseVal = atof(XMLTC(baseValElement).c_str());
+      double baseVal = stof(XMLTC(baseValElement));
       baseVal = fmod(baseVal + Random::Rand(0, baseVal/10), maxValue/2);
       char val[33];
       sprintf(val, "%f", baseVal);
@@ -1135,7 +1135,7 @@ void Piece::functionModifier(DOMElement* functionElement, int maxValue){ //Needs
     }
 
     else{
-      double percDev = atof(XMLTC(percDevElement).c_str());
+      double percDev = stof(XMLTC(percDevElement));
       percDev = fmod((percDev + Random::Rand(0, percDev/10)), 1);
       char val[33];
       sprintf(val, "%f", percDev);
@@ -1158,7 +1158,7 @@ void Piece::functionModifier(DOMElement* functionElement, int maxValue){ //Needs
     }
 
     else{
-      double lowBound = atof(XMLTC(lowBoundElement).c_str());
+      double lowBound = stof(XMLTC(lowBoundElement));
       lowBound = fmod((lowBound + Random::Rand(0, maxValue/2)), maxValue/2);
       char val[33];
       sprintf(val, "%f", lowBound);
@@ -1174,7 +1174,7 @@ void Piece::functionModifier(DOMElement* functionElement, int maxValue){ //Needs
     }
 
     else{
-      double highBound = atof(XMLTC(highBoundElement).c_str());
+      double highBound = stof(XMLTC(highBoundElement));
       highBound = fmod((highBound + Random::Rand(0, maxValue/2)), maxValue/2) + maxValue/2;
       char val[33];
       sprintf(val, "%f", highBound);
@@ -1225,7 +1225,7 @@ void Piece::functionModifier(DOMElement* functionElement, int maxValue){ //Needs
     double currentEntropy, newEntropy;
     DOMElement* thisEventElement = eventElement->GFEC(); //type
     string typeString = XMLTC(thisEventElement);
-    int type = atoi(typeString.c_str());
+    int type = stoi(typeString);
 
     thisEventElement = thisEventElement->GNES(); //name
     string name = XMLTC(thisEventElement);
@@ -1256,13 +1256,13 @@ void Piece::functionModifier(DOMElement* functionElement, int maxValue){ //Needs
 
       //Read Flag values (Needed for modification)
       string defFlag = XMLTC(methodFlagElement);
-      int definitionVal = atoi(defFlag.c_str());
+      int definitionVal = stoi(defFlag);
 
       if(definitionVal == 0){     //Only Continuum
 
         //Calculating start time orignality
         string startFlag = XMLTC(childStartTypeFlag);
-        int startFlagVal = atoi(startFlag.c_str());
+        int startFlagVal = stoi(startFlag);
 
 
         /*//Calculating Duration entropy
@@ -1360,7 +1360,7 @@ void Piece::functionModifier(DOMElement* functionElement, int maxValue){ //Needs
         DOMElement* frequencyElement = extraInfo->GFEC();
         DOMElement* frequencyFlagElement = frequencyElement->GFEC();
         string flagNum = XMLTC(frequencyFlagElement);
-        int flagVal = atoi(flagNum.c_str());
+        int flagVal = stoi(flagNum);
 
         if(flagVal == 0){
           DOMElement* freqEntry1 = frequencyFlagElement->GNES()->GNES();

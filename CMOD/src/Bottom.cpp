@@ -1354,13 +1354,13 @@ void Bottom::applyModifiers(Sound *s, int numPartials) {
         delete env;
       }
       if (spreadStr != ""){
-        newMod.addSpread(atof(spreadStr.c_str()));
+        newMod.addSpread(stof(spreadStr));
       }
       if (directionStr != ""){
-        newMod.addDirection(atof(directionStr.c_str()));
+        newMod.addDirection(stof(directionStr));
       }
       if (velocityStr != ""){
-        newMod.addVelocity(atof(velocityStr.c_str()));
+        newMod.addVelocity(stof(velocityStr));
 float vel;
       }
       if (rateStr!=""){

@@ -1663,7 +1663,7 @@ cout << "	i=" << i<< " num=" << num << endl;
 //----------------------------------------------------------------------------//
 
 DOMElement* Utilities::getSPAFunctionElement(void* _object){
-  getSPAFunctionElementHelper(_object,NULL,true);
+  return getSPAFunctionElementHelper(_object,NULL,true);
   
 }
 
@@ -1759,7 +1759,7 @@ DOMElement* Utilities::getSPAFunctionElementHelper(void* _object, DOMElement* _S
 //----------------------------------------------------------------------------//
 
 DOMElement* Utilities::getREVFunctionElement(void* _object){
-  getREVFunctionElementHelper(_object,NULL,true);
+  return getREVFunctionElementHelper(_object,NULL,true);
 }
 
 //----------------------------------------------------------------------------//
@@ -1858,7 +1858,7 @@ DOMElement* Utilities::getREVFunctionElementHelper(void* _object, DOMElement* _R
 //----------------------------------------------------------------------------//
 
 DOMElement* Utilities::getFILFunctionElement(void* _object){
-  getFILFunctionElementHelper(_object,NULL,true);
+  return getFILFunctionElementHelper(_object,NULL,true);
 }
 
 //----------------------------------------------------------------------------//

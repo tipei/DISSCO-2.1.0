@@ -31,7 +31,7 @@ Building, Running, and Starting the Container
 ----------------------
 In the project's root directory (by default, `/DISSCO-2.1.0/` or `\DISSCO-2.1.0\`) with Docker running (and you may need to run these with `sudo`):
 
-    docker build . -t ubuntu_dissco_210 && docker run --name dissco_210 -e DISPLAY=$DISPLAY --net=host -it ubuntu_dissco_210
+    docker build . -t ubuntu_dissco_210 && docker run --name dissco_210 -v $HOME:$HOME -w $HOME -e DISPLAY=$DISPLAY --net=host -it ubuntu_dissco_210
 
 You will have made a container named `dissco_210` from an image named `ubuntu_dissco_210`. You should be inside the `bash` shell in the container as `root` and can skip to the **Building** section of [`BUILDING_LINUX.md`](BUILDING_LINUX.md#building) to continue.
 

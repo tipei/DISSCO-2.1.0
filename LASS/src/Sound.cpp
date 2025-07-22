@@ -210,7 +210,7 @@ MultiTrack* Sound::render(
 
       if(getParam(DETUNE_FUNDAMENTAL) == 1.0){
 	cout << "\t using DETUNE" << endl;
-//      showDetune();
+      showDetune();
 
         while(iter.hasNext()){
       // create the detuning envelope for this partial

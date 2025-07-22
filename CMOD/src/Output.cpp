@@ -50,6 +50,7 @@ bool OutputNode::isBottom(void) {
 //----------------------------------------------------------------------------//
 
 bool OutputNode::isNote(void) {
+cout << "OutputNode:: isNote" << endl;
   return (nodeName == "Note");
 }
 

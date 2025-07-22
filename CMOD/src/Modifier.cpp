@@ -127,18 +127,24 @@ void Modifier::addValueEnv( Envelope* env ) {
 
 void Modifier::addSpread(double spread_){
   spread = spread_;
+cout << "Modifier::addSpread - spread=" << spread << endl;
 }
+
+double Modifier::getSpread() {
+return spread; }
 
 //----------------------------------------------------------------------------//
 
 void Modifier::addDirection(double dir_){
   direction = dir_;
+cout << "Modifier::adddirection=" << direction << " dir_=" << dir_ << endl;
 }
 
 //----------------------------------------------------------------------------//
 
  void Modifier::addVelocity(double vel){
   velocity = vel;
+cout << "Modifier::addVelocity - vel=" << vel << " velocity=" << velocity << endl;
  }
 
 //----------------------------------------------------------------------------//
@@ -186,7 +192,10 @@ bool Modifier::willOccur(double checkPoint) {
 //----------------------------------------------------------------------------//
 
 void Modifier::applyModifier(Sound* snd) {
+cout << "Modifier:: applyModifier " << endl;
   if (applyHow == "SOUND") {
+cout << "Modifier::applyModSound - spread=" << spread << " velocity=" << velocity 
+    << " direction=" << direction << endl;
     applyModSound(snd);
   } else if (applyHow == "PARTIAL") {
     applyModPartial(snd);
@@ -196,6 +205,9 @@ void Modifier::applyModifier(Sound* snd) {
 //----------------------------------------------------------------------------//
 
 void Modifier::applyModSound(Sound* snd) {
+
+cout << "Modifier::applyModSound enter " << endl;
+
   if (type == "FREQUENCY" || type == "GLISSANDO"
       || type == "BEND") {
     snd->setPartialParam(FREQ_ENV, *(env_values[0]));
@@ -218,6 +230,8 @@ void Modifier::applyModSound(Sound* snd) {
   } else if (type == "WAVE_TYPE") {
     snd->setPartialParam(WAVE_TYPE, env_values[0]->getValue(checkPt, 1));
   } else if (type == "DETUNE"){
+cout << "Modifier::applyModSound - spread=" << spread << " velocity=" << velocity 
+    << " direction=" << direction << endl;
     snd->setDetune(direction, spread, velocity);
   }else {
     cerr << "ERROR: Modifier given an invalid type: " << type << endl;

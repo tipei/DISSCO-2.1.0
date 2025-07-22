@@ -736,12 +736,12 @@ bool Event::buildSweep() {
 //    utilities->evaluate(XMLTC(childStartTimeElement),(void*)this);
 
     rawChildStartTime = previousChildEndTime;			//actually endTime
-//cout << "Event::buildSweep - rawChildStartTime=" << rawChildStartTime << endl;
+  cout << "Event::buildSweep - rawChildStartTime=" << rawChildStartTime << endl;
 
     if (startType == "1" ) {					//EDU
       tsChild.start = rawChildStartTime *
         tempo.getEDUDurationInSeconds().To<float>();
-//cout << "		ts.Child.start=" << tsChild.start << endl;
+  cout << "		ts.Child.start=" << tsChild.start << endl;
       tsChild.startEDU = Ratio((int)rawChildStartTime, 1);
     } else if (startType == "2") {				//seconds
       tsChild.start = rawChildStartTime; 	// no conversion needed
@@ -766,10 +766,10 @@ bool Event::buildSweep() {
     //assign previousChild Duration here so that the next child can use it
    // this is a MISNOMER actually the endTime of the present child
     previousChildEndTime = rawChildStartTime + rawChildDuration;
-/*
+
     cout << "	previousChildEndTime=" << previousChildEndTime 
 	<< " rawChildDuration=" << rawChildDuration << endl; 	
-*/
+
     // pre-quantize the duration in case "EDU" is used
     int rawChildDurationInt = (int)rawChildDuration;
     int maxChildDurInt = (int)maxChildDur;
@@ -793,11 +793,13 @@ bool Event::buildSweep() {
       tsChild.durationEDU = Ratio(0, 0); // floating point is not exact: NaN
     }
   }
+cout << "Event:: buildSweep - ts.Child.duration=" << tsChild.duration << endl;
 
   if(startType == "1" && durType == "1") {
-    endTime = Event::verify_valid(previousChildEndTime);		//missnomer !
+    endTime = Event::verify_valid(previousChildEndTime);	//missnomer
+cout << "Event:    Sweep - endTime=" << endTime << endl;
 
-    tsChild.start = rawChildStartTime *			       	    //SEVER 5/19 2022
+    tsChild.start = rawChildStartTime *			        //SEVER 5/19 2022
         tempo.getEDUDurationInSeconds().To<float>();
     tsChild.startEDU = Ratio((int)rawChildStartTime, 1);
 
@@ -1441,6 +1443,8 @@ void Event::buildMatrix(bool discrete) {
 
   delete attackSiv;
   delete durSiv;
+  delete attackSiv;
+  delete durSiv;
 
   for (int i = 0 ; i < attackEnvs.size(); i++){
     delete attackEnvs[i];
@@ -1459,7 +1463,7 @@ void Event::buildMatrix(bool discrete) {
 int Event::verify_valid(int endTime){
   
   int beatEDUs = tempo.getEDUPerTimeSignatureBeat().Num();
-//cout << "     beatEDUs=" << beatEDUs << endl;
+cout << "     beatEDUs=" << beatEDUs << endl;
 
   if (sieveSweep == NULL){
      sieveSweep = utilities->evaluateSieve(XMLTC(childStartTimeElement), (void*) this);
@@ -1472,7 +1476,7 @@ int Event::verify_valid(int endTime){
      	if (attTimes[i] >= beatEDUs){
 	   break;
 	}
-//cout << "Event::verify_valid - attTimes[" << i << "]: "<< attTimes[i] << " ";
+cout << "Event::verify_valid - attTimes[" << i << "]: "<< attTimes[i] << " ";
 	attackSweep.push_back(attTimes[i]);
      }
 //cout << " " << endl;

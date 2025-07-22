@@ -67,6 +67,9 @@ Utilities::Utilities(DOMElement* root,
   string envLibContent = XMLTranscode(envelopeLibraryElement);
   string fileString = "lib.temp";
   FILE* file  = fopen(fileString.c_str(), "w");
+  if(file == nullptr)
+	cout << strerror(errno) << endl;
+
   fputs (envLibContent.c_str(), file);
   fclose(file);
 

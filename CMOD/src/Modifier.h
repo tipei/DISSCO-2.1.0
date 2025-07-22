@@ -79,6 +79,8 @@ class Modifier {
      *  \param detune spread to add
     **/
     void addSpread(double spread_);
+
+   double getSpread();
   
    /**
      *  Add detune direction to detune Modifier.

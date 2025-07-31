@@ -48,7 +48,7 @@ Sieve::~Sieve() {
 //---------------------------------------------------------------------------//
 
 string Sieve::getFileName() {
-  return fileName;
+	return fileName;
 }
 
 
@@ -60,7 +60,6 @@ void Sieve::BuildFromExpr(int minVal, int maxVal,
   ModParser mp(offsetVect);
   mp.parseExpr(expr, minVal, maxVal);
   eList = mp.getElements();
-//Sieve::print_eList();
   Sieve::Weights(mp.getMods(), wMethod, wArgVect, mp.getOffsets());
 }
 
@@ -79,9 +78,6 @@ void Sieve::Build(int minVal, int maxVal,
 //---------------------------------------------------------------------------//
 
 void Sieve::FillInVectors(vector<int>& intVect, vector<double>& doubleVect) {
-
-//cout << "Sieve::FillInVectors - eList.size()=" << eList.size() << " wList.size()=" << wList.size() << endl;
-
   list<int>::iterator eIter = eList.begin();
   list<double>::iterator wIter = wList.begin();
 
@@ -228,13 +224,7 @@ void Sieve::Multiples(int minVal, int maxVal, vector<int> numMods, std::vector<i
 
   skip = 0;
 
- /* cout << " --- SIEVE::MULTIPLES == " << endl;
-  cout << "numMods" << endl;
-  for (int q = 0; q < numMods.size(); q++){
-    cout << numMods[q] << ", ";
-  }
-  cout << endl;
-*/
+
   for (int i = 0; i < numMods.size(); i++) {
 
     if (minVal == 0 && offsetVect[i] >=0) { //put 0 in the list if minVal ==0 and at least one of the offset is 0
@@ -256,14 +246,6 @@ void Sieve::Multiples(int minVal, int maxVal, vector<int> numMods, std::vector<i
   }
 
   eList.sort(); // sort into ascending order
-/*
-  cout << "Sieve::Multiples - eList" << endl;
-  for (list<int>::iterator it = eList.begin(); it != eList.end(); ++it) {
-    cout << *it << ", ";
-  }
-  cout << endl;
-  int sever; cin >> sever;
-*/
   eList.unique();  //remove consecutive duplicate values
 }
 
@@ -306,11 +288,6 @@ void Sieve::HierarchicWeights(const std::vector<int>& eArgVect,
   list<int>::iterator eIter = eList.begin();
   list<double>::iterator wIter = wList.begin();
 
-/*
-cout << "Sieve::Hierarchic - eList.end=" << eList.end() << " eArgVect.size()="
-     << eArgVect.size() << " wArgVect.size=" << wArgVect.size() << endl;
-  print_eList();
-*/
 
   while (eIter != eList.end()) {
      whichMod = 0;
@@ -335,7 +312,6 @@ cout << "Sieve::Hierarchic - eList.end=" << eList.end() << " eArgVect.size()="
 //---------------------------------------------------------------------------//
 
 void Sieve::IncludeWeights(const vector<int>& wArgVect) {
-//for(int i = 0; i < wArgVect.size(); i++) {
   for(int i = 0; i < eList.size(); i++) {
     if(i >= skip && i < eList.size()+ skip) {
       wList.push_back(wArgVect[i]);
@@ -384,7 +360,6 @@ void Sieve::AddEnvelope(Envelope *env, string method) {
 
 void Sieve::CumulWeights() {
     double cumul = 0;
-
     NormalizewList();
 
     list<double>::iterator iter = wList.begin();

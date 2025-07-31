@@ -251,6 +251,7 @@ MatPoint Matrix::chooseSweep(int remain) {
   return chosenPt;
 }
 
+//---------------------------------------------------------------------------//
 MatPoint Matrix::chooseContinuum() {
   return choose();
 }

@@ -15,43 +15,51 @@ do {                                                                         \
 __global__ void BiQuadFilterGPU(float *inputSample, float* outputSample, float a0, float a1, float a2, float b0, float b1, float b2, long sampleSize){
     float ba0=b0/a0, ba1=b1/a0, ba2=b2/a0, ba3=a1/a0, ba4=a2/a0, bb3, bb4;
     int tx = threadIdx.x, idx;
-    __shared__ float Z0[257], Z1[257];
+    __shared__ float Z0[1025], Z1[1025];
     float *Zsrc=Z0, *Zdest=Z1, *Ztemp;
+    long ps=(double)(sampleSize+1023)/1024;
 
-    if(tx==0){
-        Zsrc[tx+1]=ba0*inputSample[tx];
+    if(threadIdx.x==0){
+        Zsrc[threadIdx.x+1]=ba0*inputSample[threadIdx.x];
         Zsrc[0]=0;
         Zdest[0]=0;
     }
-    else if(tx==1){
-        Zsrc[tx+1]=ba0*inputSample[tx]+ba1*inputSample[tx-1];
+    else if(threadIdx.x==1){
+        Zsrc[threadIdx.x+1]=ba0*inputSample[threadIdx.x]+ba1*inputSample[threadIdx.x-1];
     }
     else
-        Zsrc[tx+1]=ba0*inputSample[tx]+ba1*inputSample[tx-1]+ba2*inputSample[tx-2];
+        Zsrc[threadIdx.x+1]=ba0*inputSample[threadIdx.x]+ba1*inputSample[threadIdx.x-1]+ba2*inputSample[threadIdx.x-2];
 
-    bb3=ba3;
-    bb4=ba4;
-    for (int off = 1; off < pb*blockDim.x; off *= 2) {
-        __syncthreads();
-        if (tx >= off) {
-            Zdest[tx+1] = Zsrc[tx+1]+bb3*Zsrc[tx+1 - off]+bb4*Zsrc[tx - off];
+    for (int j = 0; j < ps; j++){
+        bb3=ba3;
+        bb4=ba4;
+        for (int off = 1; off < pb*blockDim.x; off *= 2) {
+            __syncthreads();
+            if (tx >= off) {
+                Zdest[tx+1] = Zsrc[tx+1]+bb3*Zsrc[tx+1 - off]+bb4*Zsrc[tx - off];
+            }
+            else 
+                Zdest[tx+1] = Zsrc[tx+1];
+
+            bb3*=bb3;
+            bb4*=bb4;
+            Ztemp=Zsrc;
+            Zsrc=Zdest;
+            Zdest=Ztemp;
         }
-        else 
-            Zdest[tx+1] = Zsrc[tx+1];
+        outputSample[tx]=Zsrc[tx+1];
 
-        bb3*=bb3;
-        bb4*=bb4;
-        Ztemp=Zsrc;
-        Zsrc=Zdest;
-        Zdest=Ztemp;
-    }
+        tx+=256;
 
-
-
-
-    
-    
-
+        if(threadIdx.x==0){
+            Zsrc[0]=Zsrc[1023];
+            Zdest[0]=Zsrc[1023];
+        }
+        if(tx<sampleSize)
+            Zsrc[threadIdx.x+1]=ba0*inputSample[tx]+ba1*inputSample[tx-1]+ba2*inputSample[tx-2];
+        else
+            Zsrc[threadIdx.x+1]=0;
+        }
 }
 
 __global__ void LPCombFilterGPU(float *inputSample, float* outputSample, float inputGain, long inputDelay, float inputLpf_gain, long sampleSize){
@@ -131,6 +139,34 @@ __global__ void HexAllPassFilterGPU(float *inputSample, float *inputSample0, flo
                 X[blockDim.x*j+threadIdx.x] = (inputSample0[i*delay+idx]+inputSample1[i*delay+idx]+inputSample2[i*delay+idx]+inputSample3[i*delay+idx]+inputSample4[i*delay+idx]+inputSample5[i*delay+idx])/6;
                 Y[blockDim.x*j+threadIdx.x] = -gain*X[blockDim.x*j+threadIdx.x]+(1-gsqrd)*(gain*Y[blockDim.x*j+threadIdx.x]+x);
                 outputSample[i*delay+idx] = Y[blockDim.x*j+threadIdx.x]*envData[i*delay+idx]+(1-envData[i*delay+idx])*inputSample[i*delay+idx];
+            }
+        }
+    }
+}
+
+__global__ void AllPassFilterGPU(float *inputSample, float* outputSample, float inputGain, long inputDelay, long sampleSize){
+    float gain=inputGain, gsqrd=gain*gain, x;
+    int tx = threadIdx.x, idx;
+    long delay = inputDelay, ps=(double)(sampleSize+delay-1)/delay, pb=(double)(delay+blockDim.x-1)/blockDim.x;
+    __shared__ float X[4096], Y[4096];
+
+    for (int i = 0; i < pb; ++i){
+        idx = i*blockDim.x + tx;
+        if (idx < delay){
+            X[blockDim.x*i+threadIdx.x] = inputSample[idx];
+            Y[blockDim.x*i+threadIdx.x] = -gain*X[blockDim.x*i+threadIdx.x];
+            outputSample[idx] = Y[blockDim.x*i+threadIdx.x] + (1-gain)*X[blockDim.x*i+threadIdx.x];
+        }
+    }
+
+    for(int i=1; i<ps; ++i){
+        for (int j = 0; j < pb; ++j){
+            idx = j*blockDim.x + tx;
+            if (idx < delay&& i*delay+idx < sampleSize){
+                x=X[blockDim.x*j+threadIdx.x];
+                X[blockDim.x*j+threadIdx.x] = inputSample[i*delay+idx];
+                Y[blockDim.x*j+threadIdx.x] = -gain*X[blockDim.x*j+threadIdx.x]+(1-gsqrd)*(gain*Y[blockDim.x*j+threadIdx.x]+x);
+                outputSample[i*delay+idx] = Y[blockDim.x*j+threadIdx.x]+(1-gain)*X[blockDim.x*j+threadIdx.x];
             }
         }
     }
@@ -331,5 +367,55 @@ SoundSample* do_reverb_SoundSample_GPU(SoundSample *inWave, Envelope *percentRev
     delete[] envXY;
     delete[] envSegType;
 
+    return outWave;
+}
+
+SoundSample* do_biquad_filter_GPU(SoundSample *inWave, BiQuadFilter *biQuadFilter){
+    SoundSample *outWave=new SoundSample(inWave->getSampleCount(),inWave->getSamplingRate());
+    float *inWaveData=inWave->getData(), *outWaveDataD, *inWaveDataD, *outWaveData=new float[inWave->getSampleCount()];
+    long sampleSize=inWave->getSampleCount();
+
+    cudaMalloc(&inWaveDataD, sampleSize*sizeof(float));
+    cudaMalloc(&outWaveDataD, sampleSize*sizeof(float));
+    cudaMemcpy(inWaveDataD, inWaveData, sampleSize*sizeof(float), cudaMemcpyHostToDevice);
+    BiQuadFilterGPU<<<1, 1024>>>(inWaveDataD, outWaveDataD, biQuadFilter->get_a0(), biQuadFilter->get_a1(), biQuadFilter->get_a2(), biQuadFilter->get_b0(), biQuadFilter->get_b1(), biQuadFilter->get_b2(), sampleSize);
+
+    cudaDeviceSynchronize();
+
+    cudaMemcpy(outWave->getData(), outWaveDataD, sampleSize*sizeof(float), cudaMemcpyDeviceToHost);
+    cout<<"outwave 0 "<<(*outWave)[0]<<endl;
+    cout<<"outwave 1000 "<<(*outWave)[1000]<<endl;
+    cout<<"outwave 10000 "<<(*outWave)[10000]<<endl;
+    cout<<"outwave 100000 "<<(*outWave)[100000]<<endl;
+
+    cudaFree(inWaveDataD);
+    cudaFree(outWaveDataD);
+    delete[] outWaveData;
+    
+    return outWave;
+}
+
+SoundSample* do_all_pass_filter_GPU(SoundSample *inWave, AllPassFilter *allPassFilter){
+    SoundSample *outWave=new SoundSample(inWave->getSampleCount(),inWave->getSamplingRate());
+    float *inWaveData=inWave->getData(), *outWaveDataD, *inWaveDataD, *outWaveData=new float[inWave->getSampleCount()];
+    long sampleSize=inWave->getSampleCount();
+
+    cudaMalloc(&inWaveDataD, sampleSize*sizeof(float));
+    cudaMalloc(&outWaveDataD, sampleSize*sizeof(float));
+    cudaMemcpy(inWaveDataD, inWaveData, sampleSize*sizeof(float), cudaMemcpyHostToDevice);
+    AllPassFilterGPU<<<6, 256>>>(inWaveDataD, outWaveDataD, allPassFilter->get_g(), allPassFilter->get_D(), sampleSize);
+
+    cudaDeviceSynchronize();
+
+    cudaMemcpy(outWave->getData(), outWaveDataD, sampleSize*sizeof(float), cudaMemcpyDeviceToHost);
+    cout<<"outwave 0 "<<(*outWave)[0]<<endl;
+    cout<<"outwave 1000 "<<(*outWave)[1000]<<endl;
+    cout<<"outwave 10000 "<<(*outWave)[10000]<<endl;
+    cout<<"outwave 100000 "<<(*outWave)[100000]<<endl;
+
+    cudaFree(inWaveDataD);
+    cudaFree(outWaveDataD);
+    delete[] outWaveData;
+    
     return outWave;
 }

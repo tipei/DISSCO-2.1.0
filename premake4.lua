@@ -3,6 +3,8 @@ if _ACTION ~= "gmake" and _ACTION ~= "clean" then
   _ACTION = "gmake"
 end
 
+local CUDA_HOME = os.getenv("CUDA_HOME") or "/usr/local/cuda"
+
 newoption({trigger="examples",
   description="Creates makefiles for LASS examples"})
 
@@ -19,14 +21,33 @@ project "lass"
   flags {"StaticRuntime"}
   files {"LASS/src/*.cpp", "LASS/src/*.h"}
   excludes {"LASS/src/test/**"}
-  includedirs {"/usr/local/include"}
+  includedirs {"/usr/local/include", CUDA_HOME .. "/include"}
   kind "StaticLib"
   targetdir "lib"
   buildoptions {"-Wno-deprecated", "-Wall", "-Wextra", "-std=c++11"}
   configuration "Debug" 
     flags(DebugFlags)
     buildoptions {"-g"}
-  configuration "Release" flags(ReleaseFlags)
+    prebuildcommands {
+      "mkdir -p $(OBJDIR)",
+      "nvcc -c ../LASS/CUDA/FilterGPU.cu -Xcompiler -fPIC -g -G -o $(OBJDIR)/FilterGPU.o"
+    }
+    postbuildcommands {
+      "ar rcs $(TARGET) $(OBJDIR)/FilterGPU.o",
+      "ranlib $(TARGET)"
+    }
+  configuration "Release" 
+    flags(ReleaseFlags)  
+    prebuildcommands {
+      "mkdir -p $(OBJDIR)",
+      "nvcc -c ../LASS/CUDA/FilterGPU.cu -Xcompiler -fPIC -O3 -o $(OBJDIR)/FilterGPU.o"
+    }
+    postbuildcommands {
+      "ar rcs $(TARGET) $(OBJDIR)/FilterGPU.o",
+      "ranlib $(TARGET)"
+    }
+
+  configuration {}
 
 project "parser"
   location "make" 
@@ -74,8 +95,8 @@ project "cmod"
   flags {"StaticRuntime"}
   files {"CMOD/src/Main.*"}
   kind "ConsoleApp"
-  libdirs {"lib", "/usr/local/lib"}
-  links {"lcmod", "lass", "parser","muparser", "pthread", "sndfile"}
+  libdirs { "lib", "/usr/local/lib", "/usr/local/cuda/lib64" }
+  links   { "lcmod", "lass", "parser","muparser", "pthread", "sndfile", "cudart" }
   linkoptions{"-lxerces-c", "-rdynamic"}
   buildoptions {"-Wno-deprecated", "-std=c++11"}
   configuration "Debug" 
@@ -91,8 +112,8 @@ project "UpgradeProjectFormat"
   flags {"StaticRuntime"}
   files {"LASSIE/src/UpgradeProjectFormat.*"}
   kind "ConsoleApp"
-  libdirs {"lib", "/usr/local/lib"}
-  links {"lcmod", "lass", "parser","muparser", "pthread", "sndfile"}
+  libdirs {"lib", "/usr/local/lib", CUDA_HOME .. "/lib64", CUDA_HOME .. "/targets/x86_64-linux/lib"}
+  links {"lcmod", "lass", "parser","muparser", "pthread", "sndfile", "cudart" }
   linkoptions{"-lxerces-c"}
   buildoptions {"-Wno-deprecated", "-Wno-register", "-std=c++11"}
   configuration "Debug" 
@@ -111,8 +132,8 @@ project "lassie"
   buildoptions {"`pkg-config --cflags gtkmm-2.4`",
     "-Wno-deprecated-declarations", "-Wno-deprecated", "-std=c++11"}
   linkoptions {"`pkg-config --libs --cflags gtkmm-2.4`", "-Wno-deprecated", "-lxerces-c"}
-  libdirs {"/usr/local/lib"}
-  links {"lcmod", "lass", "parser", "pthread", "sndfile"}
+  libdirs { "/usr/local/lib", "/usr/local/cuda/lib64" }
+  links   { "lcmod", "lass", "parser", "pthread", "sndfile", "cudart" }
   configuration "Debug" 
     flags(DebugFlags)
     buildoptions {"-g"}

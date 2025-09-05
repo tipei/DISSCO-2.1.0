@@ -1,4 +1,5 @@
 #include "SignalHandlers.h"
+#include "Utilities.h"
 
 void segfaultHandler(int signal) {
     void *buf[BACKTRACE_NUM + 2];
@@ -43,6 +44,16 @@ void segfaultHandler(int signal) {
         else
             std::cerr << "External to CMOD  " << messages[i] << "\n";
     }
+
+    if(Utilities::lastEvent.empty())
+        Utilities::lastEvent="Empty";
+    if(Utilities::lastType.empty())
+        Utilities::lastType="Empty";
+    if(Utilities::lastObject.empty())
+        Utilities::lastObject="Empty";
+
+    std::cerr << "\n\x1b[1m" << "Error found at Event " << Utilities::lastEvent << " of Field " << Utilities::lastField << " of Type " << Utilities::lastType << " at Object " << Utilities::lastObject << "\x1b[0m\n";
+
     std::cerr << "\n--------------------------------------------------------------------------------\n";
 
     free(messages);

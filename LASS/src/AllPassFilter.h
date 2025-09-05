@@ -107,6 +107,9 @@ public:
 	 * \param apftag A pointer to the xml to read
 	**/
 	void xml_read( XmlReader::xmltag *apftag);
+
+	float get_g();
+	long get_D();
 private:
 	/**
 	 * The gain for the comb component of the filter

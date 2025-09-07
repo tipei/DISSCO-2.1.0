@@ -291,18 +291,18 @@ m_sample_type Reverb::do_reverb(m_sample_type x_t, float x_value, Envelope *perc
   float EnvelopeValueAtx = percentReverb->getValue(x_value,durationofEnv);
   y = (EnvelopeValueAtx*y) + ((1 - EnvelopeValueAtx)*x_t);
   
-  if(x_at == 0)
-    cout<<"y0 "<<y<<endl<<"EvenlopeValueAtx "<<EnvelopeValueAtx<<endl;
+  // if(x_at == 0)
+  //   cout<<"y0 "<<y<<endl<<"EvenlopeValueAtx "<<EnvelopeValueAtx<<endl;
   
-  if(x_at == 1000)
-    cout<<"y1000 "<<y<<endl<<"EvenlopeValueAtx "<<EnvelopeValueAtx<<endl;
+  // if(x_at == 1000)
+  //   cout<<"y1000 "<<y<<endl<<"EvenlopeValueAtx "<<EnvelopeValueAtx<<endl;
   
-  if(x_at == 10000)
-    cout<<"y10000 "<<y<<endl<<"EvenlopeValueAtx "<<EnvelopeValueAtx<<endl;
+  // if(x_at == 10000)
+  //   cout<<"y10000 "<<y<<endl<<"EvenlopeValueAtx "<<EnvelopeValueAtx<<endl;
   
-  if(x_at == 100000)
-    cout<<"y100000 "<<y<<endl<<"EvenlopeValueAtx "<<EnvelopeValueAtx<<endl;
-  x_at++;
+  // if(x_at == 100000)
+  //   cout<<"y100000 "<<y<<endl<<"EvenlopeValueAtx "<<EnvelopeValueAtx<<endl;
+  // x_at++;
 
   return y;
 }
@@ -431,6 +431,11 @@ SoundSample *Reverb::do_reverb_SoundSample(SoundSample *inWave, Envelope *percen
   t1 = std::chrono::high_resolution_clock::now();
   duration = std::chrono::duration_cast<std::chrono::microseconds>( t1 - t0 ).count();
   std::cout << "CPU Runtime: " << duration << std::endl;
+
+  cout<<"CPU outwave 0 "<<(*outWave)[0]<<endl;
+  cout<<"CPU outwave 1000 "<<(*outWave)[1000]<<endl;
+  cout<<"CPU outwave 10000 "<<(*outWave)[10000]<<endl;
+  cout<<"CPU outwave 100000 "<<(*outWave)[100000]<<endl;
 
   //for(i=0;i<inWave->getSampleCount();i++){
   //  if ((*outWaveG)[i] != (*outWave)[i])

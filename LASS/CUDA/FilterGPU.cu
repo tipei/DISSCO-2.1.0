@@ -12,13 +12,15 @@ do {                                                                         \
     }                                                                        \
 } while (0)
 
-__global__ void LPCombFilterGPU(float *inputSample, float* outputSample, float inputGain, long inputDelay, float inputLpf_gain, long sampleSize){
+#define CEIL_MULT(x, y)  ( (( (x) + (y) - 1 ) / (y) ) * (y) )
+
+__global__ void LPCombFilterGPU(float *inputSample, float* outputSample, float inputGain, long inputDelay, float inputLpf_gain, float *delaybuf0, float *delaybuf1, long sampleSize){
     float gain=inputGain, lpf_gain=inputLpf_gain;
     double gaine;
     int tx = threadIdx.x, idx;
     long delay = inputDelay, ps=(double)(sampleSize+delay-1)/delay, pb=(double)(delay+blockDim.x-1)/blockDim.x;
-    __shared__ float Z0[4096], Z1[4096];
-    float *Zsrc=Z0, *Zdest=Z1, *Ztemp;
+    //__shared__ float Z0[4096], Z1[4096];
+    float *Zsrc=delaybuf0, *Zdest=delaybuf1, *Ztemp;
 
    for (int i = 0; i < pb; i++){
         idx = i*blockDim.x + tx;
@@ -66,18 +68,19 @@ __global__ void LPCombFilterGPU(float *inputSample, float* outputSample, float i
     }
 }
 
-__global__ void HexAllPassFilterGPU(float *inputSample, float *inputSample0, float *inputSample1, float *inputSample2, float *inputSample3, float *inputSample4, float *inputSample5, float* outputSample, float* envData, float inputGain, long inputDelay, long sampleSize){
+__global__ void HexAllPassFilterGPU(float *inputSample, float *inputSample0, float *inputSample1, float *inputSample2, float *inputSample3, float *inputSample4, float *inputSample5, float* outputSample, float* envData, float inputGain, long inputDelay, float *delaybuf0, float *delaybuf1, long sampleSize){
     float gain=inputGain, gsqrd=gain*gain, x;
     int tx = blockIdx.x*blockDim.x+threadIdx.x, idx;
     long delay = inputDelay, ps=(double)(sampleSize+delay-1)/delay, pb=(double)(delay+gridDim.x*blockDim.x-1)/(gridDim.x*blockDim.x);
-    __shared__ float X[4096], Y[4096];
+    int stridesz=(delay+blockDim.x-1)/blockDim.x*blockDim.x;
+    //__shared__ float X[4096], Y[4096];
 
     for (int i = 0; i < pb; ++i){
         idx = i * gridDim.x * blockDim.x + tx;
         if (idx < delay){
-            X[blockDim.x*i+threadIdx.x] = (inputSample0[idx]+inputSample1[idx]+inputSample2[idx]+inputSample3[idx]+inputSample4[idx]+inputSample5[idx])/6;
-            Y[blockDim.x*i+threadIdx.x] = -gain*X[blockDim.x*i+threadIdx.x];
-            outputSample[idx] = Y[blockDim.x*i+threadIdx.x]*envData[idx] + (1-envData[idx])*inputSample[idx];
+            delaybuf0[stridesz*blockIdx.x+blockDim.x*i+threadIdx.x] = (inputSample0[idx]+inputSample1[idx]+inputSample2[idx]+inputSample3[idx]+inputSample4[idx]+inputSample5[idx])/6;
+            delaybuf1[stridesz*blockIdx.x+blockDim.x*i+threadIdx.x] = -gain*delaybuf0[stridesz*blockIdx.x+blockDim.x*i+threadIdx.x];
+            outputSample[idx] = delaybuf1[stridesz*blockIdx.x+blockDim.x*i+threadIdx.x]*envData[idx] + (1-envData[idx])*inputSample[idx];
         }
     }
 
@@ -85,10 +88,10 @@ __global__ void HexAllPassFilterGPU(float *inputSample, float *inputSample0, flo
         for (int j = 0; j < pb; ++j){
             idx = j* gridDim.x * blockDim.x + tx;
             if (idx < delay&& i*delay+idx < sampleSize){
-                x=X[blockDim.x*j+threadIdx.x];
-                X[blockDim.x*j+threadIdx.x] = (inputSample0[i*delay+idx]+inputSample1[i*delay+idx]+inputSample2[i*delay+idx]+inputSample3[i*delay+idx]+inputSample4[i*delay+idx]+inputSample5[i*delay+idx])/6;
-                Y[blockDim.x*j+threadIdx.x] = -gain*X[blockDim.x*j+threadIdx.x]+(1-gsqrd)*(gain*Y[blockDim.x*j+threadIdx.x]+x);
-                outputSample[i*delay+idx] = Y[blockDim.x*j+threadIdx.x]*envData[i*delay+idx]+(1-envData[i*delay+idx])*inputSample[i*delay+idx];
+                x=delaybuf0[stridesz*blockIdx.x+blockDim.x*j+threadIdx.x];
+                delaybuf0[stridesz*blockIdx.x+blockDim.x*j+threadIdx.x] = (inputSample0[i*delay+idx]+inputSample1[i*delay+idx]+inputSample2[i*delay+idx]+inputSample3[i*delay+idx]+inputSample4[i*delay+idx]+inputSample5[i*delay+idx])/6;
+                delaybuf1[stridesz*blockIdx.x+blockDim.x*j+threadIdx.x] = -gain*delaybuf0[stridesz*blockIdx.x+blockDim.x*j+threadIdx.x]+(1-gsqrd)*(gain*delaybuf1[stridesz*blockIdx.x+blockDim.x*j+threadIdx.x]+x);
+                outputSample[i*delay+idx] = delaybuf1[stridesz*blockIdx.x+blockDim.x*j+threadIdx.x]*envData[i*delay+idx]+(1-envData[i*delay+idx])*inputSample[i*delay+idx];
             }
         }
     }
@@ -200,6 +203,9 @@ void plotWithGnuplot(const std::vector<float>& data) {
 SoundSample* do_reverb_SoundSample_GPU(SoundSample *inWave, Envelope *percentReverbinput, LPCombFilter **lpCombFilter, AllPassFilter *allPassFilter){ 
     SoundSample *outWave=new SoundSample(inWave->getSampleCount(),inWave->getSamplingRate());
     float *inWaveData=inWave->getData(), *outWaveDataD0, *outWaveDataD1, *outWaveDataD2, *outWaveDataD3, *outWaveDataD4, *outWaveDataD5, *outWaveDataD, *inWaveDataD, *outWaveData=new float[inWave->getSampleCount()];
+    float *delay0bufD0, *delay0bufD1, *delay0bufD2, *delay0bufD3, *delay0bufD4, *delay0bufD5;
+    float *delay1bufD0, *delay1bufD1, *delay1bufD2, *delay1bufD3, *delay1bufD4, *delay1bufD5;
+    float *delay0bufAllP, *delay1bufAllP;
     long sampleSize=inWave->getSampleCount();
     float durationofEnv=percentReverbinput->getDuration();
     float *envData=new float[sampleSize], *envDataD, *envXY, *envXYD;
@@ -230,19 +236,33 @@ SoundSample* do_reverb_SoundSample_GPU(SoundSample *inWave, Envelope *percentRev
     cudaMalloc(&outWaveDataD3, sampleSize*sizeof(float));
     cudaMalloc(&outWaveDataD4, sampleSize*sizeof(float));
     cudaMalloc(&outWaveDataD5, sampleSize*sizeof(float));
+    cudaMalloc(&delay0bufD0, CEIL_MULT(lpCombFilter[0]->get_D(), 256)*sizeof(float));
+    cudaMalloc(&delay0bufD1, CEIL_MULT(lpCombFilter[1]->get_D(), 256)*sizeof(float));
+    cudaMalloc(&delay0bufD2, CEIL_MULT(lpCombFilter[2]->get_D(), 256)*sizeof(float));
+    cudaMalloc(&delay0bufD3, CEIL_MULT(lpCombFilter[3]->get_D(), 256)*sizeof(float));
+    cudaMalloc(&delay0bufD4, CEIL_MULT(lpCombFilter[4]->get_D(), 256)*sizeof(float));
+    cudaMalloc(&delay0bufD5, CEIL_MULT(lpCombFilter[5]->get_D(), 256)*sizeof(float));
+    cudaMalloc(&delay1bufD0, CEIL_MULT(lpCombFilter[0]->get_D(), 256)*sizeof(float));
+    cudaMalloc(&delay1bufD1, CEIL_MULT(lpCombFilter[1]->get_D(), 256)*sizeof(float));
+    cudaMalloc(&delay1bufD2, CEIL_MULT(lpCombFilter[2]->get_D(), 256)*sizeof(float));
+    cudaMalloc(&delay1bufD3, CEIL_MULT(lpCombFilter[3]->get_D(), 256)*sizeof(float));
+    cudaMalloc(&delay1bufD4, CEIL_MULT(lpCombFilter[4]->get_D(), 256)*sizeof(float));
+    cudaMalloc(&delay1bufD5, CEIL_MULT(lpCombFilter[5]->get_D(), 256)*sizeof(float));
     cudaMalloc(&outWaveDataD, sampleSize*sizeof(float));
     cudaMalloc(&envDataD, sampleSize*sizeof(float));
     cudaMemcpy(inWaveDataD, inWaveData, sampleSize*sizeof(float), cudaMemcpyHostToDevice);
-    LPCombFilterGPU<<<1, 256>>>(inWaveDataD, outWaveDataD0, lpCombFilter[0]->get_g(), lpCombFilter[0]->get_D(), lpCombFilter[0]->get_lpf_g(), sampleSize);
-    LPCombFilterGPU<<<1, 256>>>(inWaveDataD, outWaveDataD1, lpCombFilter[1]->get_g(), lpCombFilter[1]->get_D(), lpCombFilter[1]->get_lpf_g(), sampleSize);
-    LPCombFilterGPU<<<1, 256>>>(inWaveDataD, outWaveDataD2, lpCombFilter[2]->get_g(), lpCombFilter[2]->get_D(), lpCombFilter[2]->get_lpf_g(), sampleSize);
-    LPCombFilterGPU<<<1, 256>>>(inWaveDataD, outWaveDataD3, lpCombFilter[3]->get_g(), lpCombFilter[3]->get_D(), lpCombFilter[3]->get_lpf_g(), sampleSize);
-    LPCombFilterGPU<<<1, 256>>>(inWaveDataD, outWaveDataD4, lpCombFilter[4]->get_g(), lpCombFilter[4]->get_D(), lpCombFilter[4]->get_lpf_g(), sampleSize);
-    LPCombFilterGPU<<<1, 256>>>(inWaveDataD, outWaveDataD5, lpCombFilter[5]->get_g(), lpCombFilter[5]->get_D(), lpCombFilter[5]->get_lpf_g(), sampleSize);
+    LPCombFilterGPU<<<1, 256>>>(inWaveDataD, outWaveDataD0, lpCombFilter[0]->get_g(), lpCombFilter[0]->get_D(), lpCombFilter[0]->get_lpf_g(), delay0bufD0, delay1bufD0, sampleSize);
+    LPCombFilterGPU<<<1, 256>>>(inWaveDataD, outWaveDataD1, lpCombFilter[1]->get_g(), lpCombFilter[1]->get_D(), lpCombFilter[1]->get_lpf_g(), delay0bufD1, delay1bufD1, sampleSize);
+    LPCombFilterGPU<<<1, 256>>>(inWaveDataD, outWaveDataD2, lpCombFilter[2]->get_g(), lpCombFilter[2]->get_D(), lpCombFilter[2]->get_lpf_g(), delay0bufD2, delay1bufD2, sampleSize);
+    LPCombFilterGPU<<<1, 256>>>(inWaveDataD, outWaveDataD3, lpCombFilter[3]->get_g(), lpCombFilter[3]->get_D(), lpCombFilter[3]->get_lpf_g(), delay0bufD3, delay1bufD3, sampleSize);
+    LPCombFilterGPU<<<1, 256>>>(inWaveDataD, outWaveDataD4, lpCombFilter[4]->get_g(), lpCombFilter[4]->get_D(), lpCombFilter[4]->get_lpf_g(), delay0bufD4, delay1bufD4, sampleSize);
+    LPCombFilterGPU<<<1, 256>>>(inWaveDataD, outWaveDataD5, lpCombFilter[5]->get_g(), lpCombFilter[5]->get_D(), lpCombFilter[5]->get_lpf_g(), delay0bufD5, delay1bufD5, sampleSize);
     cudaDeviceSynchronize();
 
     cudaMalloc(&envXYD, segSize*2*sizeof(float));
     cudaMalloc(&envSegTypeD, (segSize-1)*sizeof(int));
+    cudaMalloc(&delay0bufAllP, CEIL_MULT(allPassFilter->get_D(), 256)*6*sizeof(float));
+    cudaMalloc(&delay1bufAllP, CEIL_MULT(allPassFilter->get_D(), 256)*6*sizeof(float));
 
     cudaMemcpy(envXYD, envXY, segSize*2*sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(envSegTypeD, envSegType, (segSize-1)*sizeof(int), cudaMemcpyHostToDevice);
@@ -262,7 +282,7 @@ SoundSample* do_reverb_SoundSample_GPU(SoundSample *inWave, Envelope *percentRev
     //}
     //plotWithGnuplot(plot);
 
-    HexAllPassFilterGPU<<<6, 256>>>(inWaveDataD, outWaveDataD0, outWaveDataD1, outWaveDataD2, outWaveDataD3, outWaveDataD4, outWaveDataD5, outWaveDataD, envDataD, allPassFilter->get_g(), allPassFilter->get_D(), sampleSize);
+    HexAllPassFilterGPU<<<6, 256>>>(inWaveDataD, outWaveDataD0, outWaveDataD1, outWaveDataD2, outWaveDataD3, outWaveDataD4, outWaveDataD5, outWaveDataD, envDataD, allPassFilter->get_g(), allPassFilter->get_D(), delay0bufAllP, delay1bufAllP, sampleSize);
 
     cudaDeviceSynchronize();
 
@@ -280,6 +300,20 @@ SoundSample* do_reverb_SoundSample_GPU(SoundSample *inWave, Envelope *percentRev
     cudaFree(outWaveDataD3);
     cudaFree(outWaveDataD4);
     cudaFree(outWaveDataD5);
+    cudaFree(delay0bufD0);
+    cudaFree(delay0bufD1);
+    cudaFree(delay0bufD2);
+    cudaFree(delay0bufD3);
+    cudaFree(delay0bufD4);
+    cudaFree(delay0bufD5);
+    cudaFree(delay1bufD0);
+    cudaFree(delay1bufD1);
+    cudaFree(delay1bufD2);
+    cudaFree(delay1bufD3);
+    cudaFree(delay1bufD4);
+    cudaFree(delay1bufD5);
+    cudaFree(delay0bufAllP);
+    cudaFree(delay1bufAllP);
     cudaFree(outWaveDataD);
     cudaFree(envDataD);
     cudaFree(envXYD);

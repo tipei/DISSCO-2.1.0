@@ -62,7 +62,7 @@ Event::Event(DOMElement* _element,
   //Initialize parameters
   DOMElement* thisEventElement = _element->GFEC();
   string typeString =XMLTC(thisEventElement);
-  type = atoi(typeString.c_str());
+  type = stoi(typeString);
 
   thisEventElement = thisEventElement->GNES();
   name = XMLTC(thisEventElement);
@@ -426,6 +426,7 @@ void Event::buildChildren() {
   */
 
   //Create the child events.
+  Utilities::lastField="Child Event Attribution";
   for (currChildNum = 0; currChildNum < numChildren; currChildNum++) {
     if (method == "0")
       checkEvent(buildContinuum());

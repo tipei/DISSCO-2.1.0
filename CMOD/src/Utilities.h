@@ -183,6 +183,10 @@ public:
  std::map<int, string> filterEventnames;
 std::map<int, string> notesEventnames;
 
+static string lastObject;
+static string lastEvent;
+static string lastField;
+static string lastType;
 
   //----------------------------- Other tasks --------------------------------//
 

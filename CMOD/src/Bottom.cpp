@@ -129,6 +129,7 @@ void Bottom::buildChildren(){
   }
 
   //Create the child events.
+  Utilities::lastField="Child Event Attribution";
   for (currChildNum = 0; currChildNum < numChildren; currChildNum++) {
     if (method == "0") //continuum
       checkEvent(buildContinuum());

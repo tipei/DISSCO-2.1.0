@@ -41,7 +41,7 @@ Sound::Sound()
     setParam(DETUNE_SPREAD, 0.0);		//0.3
     setParam(DETUNE_DIRECTION, -1.0);		//0.0
     setParam(DETUNE_VELOCITY, 0.5);		//-1.0
-    setParam(DETUNE_FUNDAMENTAL, 1);		//-1.0
+    setParam(DETUNE_FUNDAMENTAL, 0);		//-1.0
     filterObj = NULL;
     reverbObj = NULL;
     spatializer_ = new Spatializer();
@@ -79,7 +79,7 @@ Sound::Sound(int numPartials, m_value_type baseFreq)
     setParam(DETUNE_SPREAD, 0.0);
     setParam(DETUNE_DIRECTION, -1.0);		//-1.0
     setParam(DETUNE_VELOCITY, 0.5);
-    setParam(DETUNE_FUNDAMENTAL, 1.0);		//0.0
+    setParam(DETUNE_FUNDAMENTAL, 0);		//0.0
 
     reverbObj = NULL;
 
@@ -148,7 +148,7 @@ void Sound::setDetune(double direction, double spread, double velocity){
   setParam(DETUNE_DIRECTION,direction);
   setParam(DETUNE_SPREAD,spread);
   setParam(DETUNE_VELOCITY, velocity);
-//   setParam(DETUNE_FUNDAMENTAL, 1);
+  setParam(DETUNE_FUNDAMENTAL, 1);
 }
 
 //----------------------------------------------------------------------------//
@@ -210,7 +210,7 @@ MultiTrack* Sound::render(
 
       if(getParam(DETUNE_FUNDAMENTAL) == 1.0){
 	cout << "\t using DETUNE" << endl;
-      showDetune();
+//    showDetune();
 
         while(iter.hasNext()){
       // create the detuning envelope for this partial

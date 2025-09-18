@@ -1357,16 +1357,16 @@ void Bottom::applyModifiers(Sound *s, int numPartials) {
       }
       if (spreadStr != ""){
         newMod.addSpread(atof(spreadStr.c_str()));
-cout << "Bottom:: applyModifiers - addSpread" <<atof(spreadStr.c_str()) << endl;
-cout << "	getSpread value =" << to_string(newMod.getSpread()) << endl;
+//cout << "Bottom:: applyModifiers - addSpread" <<atof(spreadStr.c_str()) << endl;
+//`cout << "	getSpread value =" << to_string(newMod.getSpread()) << endl;
       }
       if (directionStr != ""){
         newMod.addDirection(atof(directionStr.c_str()));
-cout << "Bottom:: applyModifiers - addDirection" << atof(directionStr.c_str()) << endl;
+// cout << "Bottom:: applyModifiers - addDirection" << atof(directionStr.c_str()) << endl;
       }
       if (velocityStr != ""){
         newMod.addVelocity(atof(velocityStr.c_str()));
-cout << "Bottom:: applyModifiers - addedVelocity" << atof(velocityStr.c_str()) << endl;
+//cout << "Bottom:: applyModifiers - addedVelocity" << atof(velocityStr.c_str()) << endl;
 cout << "  " << endl;
 float vel;
       }
@@ -1387,13 +1387,16 @@ float vel;
       std::string groupName;
 
 std::getline(ss, groupName);		//added by Sever
-cout << "Bottom: applyMod - groupName: " << groupName << endl;
+//cout << "Bottom: applyMod - groupName: " << groupName << endl;
         modGroups[groupName].push_back(newMod);
 vector<Modifier> modGroup = modGroups[groupName];
-cout << "spread value again=" <<to_string(modGroup[0].getSpread()) << endl;
+//cout << "spread value again=" <<to_string(modGroup[0].getSpread()) << endl;
 
     if(modGroups.find(groupName) != modGroups.end()) {
-cout << "       modGroups found" << endl; }
+//cout << "       modGroups found" << endl;
+    } 
+
+    newMod.applyModifier(s);
 
 //      while (std::getline(ss, groupName, ',')) {
 //      /* strip leading and trailing whitespaces to be compatible with
@@ -1468,6 +1471,7 @@ cout << "       modGroups found" << endl; }
           modGroups[groupName].push_back(newPartialMod);
         }
         envelopeElement = envelopeElement->GNES();
+	newPartialMod.applyModifier(s);
       }
     }
 
@@ -1496,7 +1500,7 @@ cout << "       modGroups found" << endl; }
   */
 
   string targetModGroupName = XMLTC(modifierGroupElement);
-cout << "  targetModGroupName: " << targetModGroupName << endl;
+//cout << "  targetModGroupName: " << targetModGroupName << endl;
 
   if (targetModGroupName.find("<Fun>") != string::npos) { // evaluate if it's function string
 
@@ -1512,10 +1516,10 @@ cout << "  targetModGroupName: " << targetModGroupName << endl;
     }
 
   }
-
+/*
   // ZIYUAN CHEN, July 2023 - apply the specified one (1) group of modifiers
   if (modGroups.find(targetModGroupName) != modGroups.end()) {
-cout << "	targetModGroupNam:" << targetModGroupName << endl;
+//cout << "	targetModGroupNam:" << targetModGroupName << endl;
     vector<Modifier> modGroup = modGroups[targetModGroupName];
     for (int i = 0; i < modGroup.size(); i++) {
       modGroup[i].applyModifier(s);
@@ -1523,6 +1527,7 @@ cout << "	targetModGroupNam:" << targetModGroupName << endl;
   } else {
     cerr << "WARNING: Specified modifier group " << targetModGroupName << " not found!" << endl;
   }
+*/
 
   //delete modifiersIncludingAncestorsElement;
 }

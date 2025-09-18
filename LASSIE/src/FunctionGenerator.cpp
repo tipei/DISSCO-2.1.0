@@ -7610,7 +7610,7 @@ void FunctionGenerator::REVPartialAlignment::SimpleEntryFunButtonClicked(){
   }
 
   FunctionGenerator* generator =
-    new FunctionGenerator(functionReturnFloat,entry->get_text());
+    new FunctionGenerator(functionReturnENV,entry->get_text());
   generator->run();
 
   if (generator->getResultString() !=""){

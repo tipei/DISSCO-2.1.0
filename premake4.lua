@@ -49,7 +49,7 @@ end
 
 CUDA_HOME  = detect_cuda_home()
 NVIDIA_SMI = detect_nvidia_smi()
-HAVE_CUDA  = file_exists(CUDA_HOME .. "/bin/nvcc") and (NVIDIA_SMI ~= nil)  --Detects if CUDA is available
+HAVE_CUDA  = (CUDA_HOME ~= nil) and (NVIDIA_SMI ~= nil)  --Detects if CUDA is available
 
 newoption({trigger="examples",
   description="Creates makefiles for LASS examples"})

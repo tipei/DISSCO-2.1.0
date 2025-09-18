@@ -197,8 +197,12 @@ project "lassie"
   buildoptions {"`pkg-config --cflags gtkmm-2.4`",
     "-Wno-deprecated-declarations", "-Wno-deprecated", "-std=c++11"}
   linkoptions {"`pkg-config --libs --cflags gtkmm-2.4`", "-Wno-deprecated", "-lxerces-c"}
-  libdirs { "/usr/local/lib", "/usr/local/cuda/lib64" }
-  links   { "lcmod", "lass", "parser", "pthread", "sndfile", "cudart" }
+  libdirs { "/usr/local/lib" }
+  links   { "lcmod", "lass", "parser", "pthread", "sndfile" }
+  if( HAVE_CUDA ) then 
+    libdirs { CUDA_HOME .. "/lib64"}
+    links {"cudart"}
+  end
   configuration "Debug" 
     flags(DebugFlags)
     buildoptions {"-g"}

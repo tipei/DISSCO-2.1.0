@@ -1,6 +1,8 @@
 #include "SignalHandlers.h"
 #include "Utilities.h"
 
+
+// Rubin Du 2024 July: Added signal handlers for better debugging
 void segfaultHandler(int signal) {
     void *buf[BACKTRACE_NUM + 2];
     size_t size = backtrace(buf, BACKTRACE_NUM + 2);        // Do a backtrace of the stack

@@ -30,7 +30,9 @@
 #include "Types.h"
 #include "Filter.h"
 #include <chrono>
-#include "../CUDA/FilterGPU.h"
+#ifdef HAVE_CUDA
+  #include "../CUDA/FilterGPU.h"
+#endif
 
 //----------------------------------------------------------------------------//
 
@@ -405,43 +407,22 @@ SoundSample *Reverb::do_reverb_SoundSample(SoundSample *inWave, Envelope *percen
 {
 
   int i;
-  SoundSample *outWaveG, *outWave;  
+  SoundSample *outWave;  
   Envelope* temp = new Envelope(*percentReverbinput);
   delete percentReverb;
   percentReverb = temp;
 
-  auto t0 = std::chrono::high_resolution_clock::now();
-  outWaveG=do_reverb_SoundSample_GPU(inWave, percentReverb, lpcfilter, apfilter);
-  auto t1 = std::chrono::high_resolution_clock::now();
-  auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t1 - t0 ).count();
-  std::cout << "GPU Runtime: " << duration << std::endl;
+  #ifdef HAVE_CUDA
+  outWave=do_reverb_SoundSample_GPU(inWave, percentReverb, lpcfilter, apfilter);
+  #else
+    // create new SoundSample
+    outWave = new SoundSample(inWave->getSampleCount(),
+	  		    inWave->getSamplingRate());
 
-  //Envelope* temp = new Envelope(*percentReverbinput);
-  //delete percentReverb;
-  //percentReverb = temp;
-  //// create new SoundSample
-  t0 = std::chrono::high_resolution_clock::now();
-  outWave = new SoundSample(inWave->getSampleCount(),
-			    inWave->getSamplingRate());
-
-  x_at = 0;
-  for(i=0;i<inWave->getSampleCount();i++)
-    (*outWave)[i] = do_reverb((*inWave)[i],(float) i / inWave->getSampleCount()
+    for(i=0;i<inWave->getSampleCount();i++)
+      (*outWave)[i] = do_reverb((*inWave)[i],(float) i / inWave->getSampleCount()
 			      , percentReverb);
-  t1 = std::chrono::high_resolution_clock::now();
-  duration = std::chrono::duration_cast<std::chrono::microseconds>( t1 - t0 ).count();
-  std::cout << "CPU Runtime: " << duration << std::endl;
-
-  cout<<"CPU outwave 0 "<<(*outWave)[0]<<endl;
-  cout<<"CPU outwave 1000 "<<(*outWave)[1000]<<endl;
-  cout<<"CPU outwave 10000 "<<(*outWave)[10000]<<endl;
-  cout<<"CPU outwave 100000 "<<(*outWave)[100000]<<endl;
-
-  //for(i=0;i<inWave->getSampleCount();i++){
-  //  if ((*outWaveG)[i] != (*outWave)[i])
-  //    cout<<"Diff at "<<i<<" "<<(*outWaveG)[i]<<" "<<(*outWave)[i]<<endl;
-  //  
-  //}
+  #endif
 
   return outWave;
 }

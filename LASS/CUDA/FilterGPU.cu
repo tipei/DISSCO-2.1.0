@@ -288,10 +288,10 @@ SoundSample* do_reverb_SoundSample_GPU(SoundSample *inWave, Envelope *percentRev
 
 
     cudaMemcpy(outWave->getData(), outWaveDataD, sampleSize*sizeof(float), cudaMemcpyDeviceToHost);
-    cout<<"outwave 0 "<<(*outWave)[0]<<endl;
-    cout<<"outwave 1000 "<<(*outWave)[1000]<<endl;
-    cout<<"outwave 10000 "<<(*outWave)[10000]<<endl;
-    cout<<"outwave 100000 "<<(*outWave)[100000]<<endl;
+    // cout<<"outwave 0 "<<(*outWave)[0]<<endl;
+    // cout<<"outwave 1000 "<<(*outWave)[1000]<<endl;
+    // cout<<"outwave 10000 "<<(*outWave)[10000]<<endl;
+    // cout<<"outwave 100000 "<<(*outWave)[100000]<<endl;
 
     cudaFree(inWaveDataD);
     cudaFree(outWaveDataD0);

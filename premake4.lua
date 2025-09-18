@@ -35,8 +35,21 @@ local function detect_cuda_home() --Detect CUDA installation path
   return nil
 end
 
+local function detect_nvidia_smi()
+  local p = io.popen("command -v nvidia-smi 2>/dev/null")
+  local smi = p and p:read("*l") or nil
+  if p then p:close() end
+  if smi and file_exists(smi) then return smi end
+
+  for _, f in ipairs(os.matchfiles("/usr/bin/nvidia-smi")) do if file_exists(f) then return f end end
+  for _, f in ipairs(os.matchfiles("/usr/lib/nvidia-*/bin/nvidia-smi")) do if file_exists(f) then return f end end
+  for _, f in ipairs(os.matchfiles("/usr/lib/wsl/lib/nvidia-smi")) do if file_exists(f) then return f end end
+  return nil
+end
+
 CUDA_HOME  = detect_cuda_home()
-HAVE_CUDA  = file_exists(CUDA_HOME .. "/bin/nvcc")  --Detects if CUDA is available
+NVIDIA_SMI = detect_nvidia_smi()
+HAVE_CUDA  = file_exists(CUDA_HOME .. "/bin/nvcc") and (NVIDIA_SMI ~= nil)  --Detects if CUDA is available
 
 newoption({trigger="examples",
   description="Creates makefiles for LASS examples"})

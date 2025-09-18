@@ -79,6 +79,8 @@ public:
 	 **/
 	m_sample_type do_filter(m_sample_type x_t);
 
+	SoundSample *do_filter_SoundSample(SoundSample *inWave);
+
 	/**
 	 * This method should be redefined by each class derived from Filter to
 	 * reset the filter to an initial state.  It should have the same effect

@@ -79,6 +79,28 @@ m_sample_type AllPassFilter::do_filter(m_sample_type x_t)
 
 //----------------------------------------------------------------------------//
 
+SoundSample *AllPassFilter::do_filter_SoundSample(SoundSample *inWave)
+{
+  
+  
+	int i;
+	SoundSample *outWave;
+
+	// create new SoundSample
+	outWave = new SoundSample(inWave->getSampleCount(),
+							  inWave->getSamplingRate());
+
+	for(i=0;i<inWave->getSampleCount();i++)
+	{
+		(*outWave)[i] = do_filter((*inWave)[i]);
+//	outWave->operator[](i) = do_filter(inWave->operator[](i));
+	}
+
+	return outWave;
+}
+
+//----------------------------------------------------------------------------//
+
 void AllPassFilter::reset()
 {
 	delete y_hist;

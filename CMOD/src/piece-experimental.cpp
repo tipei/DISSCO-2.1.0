@@ -289,15 +289,12 @@ Piece::Piece(string _workingPath, string _projectTitle){
 
   //Testing multiple runs on one seed
   int numRuns;
-  cout<<"Please key in how many times you want to run:"<<endl;
+  cout<<"Please key in how many times you want to run (1-10):"<<endl;
   cin>>numRuns;
 
-  //Ask user if multiple or one combined file (true/false)
-  bool combine;
-  cout<<"Please enter if you want to combine runs (true/false):"<<endl;
-  cin>>boolalpha>>combine;
-  cout << "COMBINE VALUE:" << combine << endl;
-  string firstSoundFileName;
+  // Enforce numRuns bounds
+  if (numRuns < 1) { numRuns = 1; }
+  if (numRuns > 10) { numRuns = 10; }
 
   //Convert seed string to seed number and seed the random number generator
   int seedNumber = PieceHelper::getSeedNumber(seed);
@@ -365,17 +362,9 @@ Piece::Piece(string _workingPath, string _projectTitle){
         MultiTrack* renderedScore = utilities->doneCMOD();
         string soundFilename = getNextSoundFile();
 
-        if (i == 0 && combine) { // store file name and rendered score for first run
-          firstSoundFileName = soundFilename;
-        }
-        else if (i == numRuns-1 && combine) {
-          // writes last score of multiple runs to file (need to come up with appending logic)
-          AuWriter::write(*renderedScore, firstSoundFileName);
-        }
-        else {
-          //Write to file.
-          AuWriter::write(*renderedScore, soundFilename);
-        }
+        //Write to file.
+        AuWriter::write(*renderedScore, soundFilename);
+
         delete renderedScore;
       }
     if (scorePrinting) {

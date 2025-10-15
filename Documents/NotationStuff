@@ -1,0 +1,72 @@
+
+
+Note: Definition of a note (?)
+	setStartTime;  		set EndTime
+	initSplit 	-assign pitch to a notea	
+	setPitchNum		getPitchNum
+	PitchWellTempered;   	HertzToPitch
+	setLoudnessMark;     	setLoudnessSones
+	setModifiers;        	mergeModifiers
+	setStaffNum		getStaffNum
+	is_real_note 	-judge if this note has pitch
+	multistaves  ??
+	GetText; string, etc.
+
+NotationScore: A class representing a notated score for output using Lilypond.
+			class Section
+	RegisterTempo		insert a Tempo
+	InsertNote
+	Build the text representation of this score by adding bars, rests, and 
+		adjusting durations.
+	Output the text representation of a score
+		ostream& operator<<
+	(PrintScoreFlat)
+
+Section: A class representing a notated section for output using Lilypond
+	InsertNote
+	SetDurationEDUS
+	GetStartTimeGlobal
+	CalculateEDUsFromSecondsInTempo
+	Build the text representation of this section by adding bars,
+  		 rests, and adjusting durations	
+	PrintAllNotesFlat: Get this section as a flattened entity ready for output
+	EnsureNoteExpressible
+	ResizeSection			to the specified size
+	AddBars
+	AddRestsAndFlatten		to section_flat_
+	Notat: 				run the notation loop for the section
+	CapEnding			according to the EDU allotment
+	NotateCurrentNote(Note		given the tuplets
+	FillCurrentTupletDur
+	FillCompleteBeats
+	CreateTupletWithRests
+	NoteInTuplet			notate a note or rest in a tuplet
+	LoudnessMark
+	ModifiersMark
+	list<Note*> PopFirstBar
+		.......
+	
+Output	struct OutputNode
+	re. Particel
+	NotationScore
+	   SubLevel
+	etc.
+
+================================================================
+Bottom::buildNote - newNote setLoudness
+Bottom::applyNoteMod
+Bottom::buildNote - initSplit
+NotationScore::InsertNote
+Bottom:: buildNote - Output::notation_score_.InsertNote
+Bottom::buildNote - newNote setLoudness
+Bottom::applyNoteMod
+Bottom::buildNote - initSplit
+NotationScore::InsertNote
+Bottom:: buildNote - Output::notation_score_.InsertNote
+Piece::Piece: Score output 
+staffSum:1
+Notationscore - cur_note: \time 4/4
+
+Notationscore - cur_note: 
+Notationscore - avePitcNum=0 pitchSum=0
+Floating point exception (core dumped)

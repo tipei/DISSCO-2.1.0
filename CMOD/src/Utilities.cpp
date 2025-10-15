@@ -37,6 +37,8 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "../../LASS/src/ProbabilityEnvelope.h" // consider moving this into LASS.h
 #include <string>
 
+string Utilities::lastObject = "N/A", Utilities::lastEvent = "N/A", Utilities::lastType = "N/A", Utilities::lastField = "N/A";
+
 Utilities::Utilities(DOMElement* root,
                      string _workingPath,
                      bool _soundSynthesis,
@@ -67,6 +69,9 @@ Utilities::Utilities(DOMElement* root,
   string envLibContent = XMLTranscode(envelopeLibraryElement);
   string fileString = "lib.temp";
   FILE* file  = fopen(fileString.c_str(), "w");
+  if(file == nullptr)
+	cout << strerror(errno) << endl;
+
   fputs (envLibContent.c_str(), file);
   fclose(file);
 
@@ -267,46 +272,62 @@ Utilities::~Utilities(){
 
 DOMElement* Utilities::getEventElement(EventType _type, string _eventName){
   map<string, DOMElement*>::iterator it;
+  lastField = "N/A ";
+  lastType = "N/A ";
+  lastObject = "N/A ";
 
   switch((int)_type){
     case 0:
       it = topEventElements.find(_eventName);
+      lastEvent = "Top " + _eventName;
       break;
     case 1:
       it = highEventElements.find(_eventName);
+      lastEvent = "High " + _eventName;
       break;
     case 2:
       it = midEventElements.find(_eventName);
+      lastEvent = "Mid " + _eventName;
       break;
     case 3:
       it = lowEventElements.find(_eventName);
+      lastEvent = "Low " + _eventName;
       break;
     case 4:
       it = bottomEventElements.find(_eventName);
+      lastEvent = "Bottom " + _eventName;
       break;
     case 5:
       it = spectrumElements.find(_eventName);
+      lastField = "Modifiers ";
       break;
     case 6:
       it = envelopeElements.find(_eventName);
+      lastField = "Modifiers ";
       break;
     case 7:
       it = sieveElements.find(_eventName);
+      lastField = "Modifiers ";
       break;
     case 8:
       it = spatializationElements.find(_eventName);
+      lastField = "Modifiers ";
       break;
     case 9:
       it = patternElements.find(_eventName);
+      lastField = "Modifiers ";
       break;
     case 10:
       it = reverbElements.find(_eventName);
+      lastField = "Modifiers ";
       break;
     case 12:
       it = notesElements.find(_eventName);
+      lastField = "Modifiers ";
       break;
     case 13:
       it = filterElements.find(_eventName);
+      lastField = "Modifiers ";
       break;
   }
   return it->second;
@@ -411,27 +432,36 @@ void* Utilities::evaluateObject(string _input,
 
   //remove any spaces
   string input =  removeSpaces( _input);
+  lastObject = _input;
 
   // call the proper method
   if (_returnType == eventEnv){
+    lastType="Envelope";
+    lastObject = "N/A";
     return getEnvelope(input, _object);
   }
   else if (_returnType == eventSpa){
+    lastType="Spatialization of item "+_input;
     return (void*) getSPAFunctionElement( _object);
   }
   else if (_returnType == eventRev){
+    lastType="Reverb of item "+_input;
     return (void*) getREVFunctionElement( _object);
   }
   else if (_returnType ==eventPat){
+    lastType="Pattern of item "+_input;
     return (void*) getPattern( input, _object);
   }
   else if (_returnType ==eventSiv){
+    lastType="Sieve of item "+_input;
     return (void*) getSieve( input, _object);
   }
   else if (_returnType ==eventFil){
+    lastType="Filter of item "+_input;
     return (void*) getFILFunctionElement( _object);
   }
   else if (_returnType == eventSpec){
+    lastType="Spectrum of item "+_input;
     return (void*) getSpectrum(input, _object);
   }
   return (void*)  NULL;
@@ -527,6 +557,9 @@ void Utilities::addSound(Sound* _sound){
 //----------------------------------------------------------------------------//
 
 MultiTrack* Utilities::doneCMOD(){
+  lastEvent="N/A";
+  lastType="N/A";
+  lastObject="N/A";
   if (score != NULL){
    return score->doneAddingSounds();
   }

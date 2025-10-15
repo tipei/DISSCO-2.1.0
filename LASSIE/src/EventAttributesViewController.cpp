@@ -3915,7 +3915,7 @@ void BottomEventModifierAlignment::grayOutModifierFields(ModifierType type) {
       attributesRefBuilder->get_widget("partialResultStringEntry", entry);
       if (applyType == "SOUND") {
         entry->set_sensitive(false);
-        entry->set_text("");
+	entry->set_text("");
       } else if (applyType == "PARTIAL") {  //If partials, only allow partialResultStringEntry to be modified
         entry->set_sensitive(type!=modifierDetune); //if type is detune prevent all inputs since it's invalid
 
@@ -3978,6 +3978,7 @@ void BottomEventModifierAlignment::grayOutModifierFields(ModifierType type) {
     attributesRefBuilder->get_widget("DirectionEntry", entry);
     entry->set_sensitive(false);
     entry->set_text("");
+
   } else if (type == modifierAmptrans || type == modifierFreqtrans) {
 
     attributesRefBuilder->get_widget("probablityEnvelopeEntry", entry);
@@ -4003,6 +4004,7 @@ void BottomEventModifierAlignment::grayOutModifierFields(ModifierType type) {
     attributesRefBuilder->get_widget("DirectionEntry", entry);
     entry->set_sensitive(false);
     entry->set_text("");
+
   } else if (type == modifierDetune) {
 
     attributesRefBuilder->get_widget("probablityEnvelopeEntry", entry);
@@ -4055,6 +4057,7 @@ void BottomEventModifierAlignment::grayOutModifierFields(ModifierType type) {
     attributesRefBuilder->get_widget("DirectionEntry", entry);
     entry->set_sensitive(false);
     entry->set_text("");
+
   } else if (type == modifierWave_type) {
 
     attributesRefBuilder->get_widget("probablityEnvelopeEntry", entry);

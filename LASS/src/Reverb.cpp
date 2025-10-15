@@ -28,6 +28,11 @@
 #include "AllPassFilter.h"
 #include "Reverb.h"
 #include "Types.h"
+#include "Filter.h"
+#include <chrono>
+#ifdef HAVE_CUDA
+  #include "../CUDA/FilterGPU.h"
+#endif
 
 //----------------------------------------------------------------------------//
 
@@ -280,12 +285,27 @@ m_sample_type Reverb::do_reverb(m_sample_type x_t, float x_value, Envelope *perc
   y += lpcfilter[5]->do_filter(x_t);
   y /= (m_sample_type)REVERB_NUM_COMB_FILTERS;
 
+
   // after adding up the results, run it through an allpass filter
   y = apfilter->do_filter(y);
   // Mix it with the input sound
   float durationofEnv = percentReverb->getDuration();
   float EnvelopeValueAtx = percentReverb->getValue(x_value,durationofEnv);
   y = (EnvelopeValueAtx*y) + ((1 - EnvelopeValueAtx)*x_t);
+  
+  // if(x_at == 0)
+  //   cout<<"y0 "<<y<<endl<<"EvenlopeValueAtx "<<EnvelopeValueAtx<<endl;
+  
+  // if(x_at == 1000)
+  //   cout<<"y1000 "<<y<<endl<<"EvenlopeValueAtx "<<EnvelopeValueAtx<<endl;
+  
+  // if(x_at == 10000)
+  //   cout<<"y10000 "<<y<<endl<<"EvenlopeValueAtx "<<EnvelopeValueAtx<<endl;
+  
+  // if(x_at == 100000)
+  //   cout<<"y100000 "<<y<<endl<<"EvenlopeValueAtx "<<EnvelopeValueAtx<<endl;
+  // x_at++;
+
   return y;
 }
 
@@ -385,21 +405,24 @@ SoundSample *Reverb::do_reverb_SoundSample(SoundSample *inWave)
 }
 SoundSample *Reverb::do_reverb_SoundSample(SoundSample *inWave, Envelope *percentReverbinput)
 {
-  int i;
-  SoundSample *outWave;
-  // delete percentReverb;
-  // percentReverb = new Envelope(*percentReverbinput);
 
+  int i;
+  SoundSample *outWave;  
   Envelope* temp = new Envelope(*percentReverbinput);
   delete percentReverb;
   percentReverb = temp;
-  // create new SoundSample
-  outWave = new SoundSample(inWave->getSampleCount(),
-			    inWave->getSamplingRate());
 
-  for(i=0;i<inWave->getSampleCount();i++)
-    (*outWave)[i] = do_reverb((*inWave)[i],(float) i / inWave->getSampleCount()
+  #ifdef HAVE_CUDA
+  outWave=do_reverb_SoundSample_GPU(inWave, percentReverb, lpcfilter, apfilter);
+  #else
+    // create new SoundSample
+    outWave = new SoundSample(inWave->getSampleCount(),
+	  		    inWave->getSamplingRate());
+
+    for(i=0;i<inWave->getSampleCount();i++)
+      (*outWave)[i] = do_reverb((*inWave)[i],(float) i / inWave->getSampleCount()
 			      , percentReverb);
+  #endif
 
   return outWave;
 }

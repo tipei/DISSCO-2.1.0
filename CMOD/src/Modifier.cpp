@@ -130,6 +130,9 @@ void Modifier::addSpread(double spread_){
   cout << "Modifier::addSpread - spread=" << spread << endl;
 }
 
+double Modifier::getSpread() {
+return spread; }
+
 //----------------------------------------------------------------------------//
 
 void Modifier::addDirection(double dir_){
@@ -189,6 +192,7 @@ bool Modifier::willOccur(double checkPoint) {
 //----------------------------------------------------------------------------//
 
 void Modifier::applyModifier(Sound* snd) {
+
   if (applyHow == "SOUND") {
     cout << "Modifier::applyMod - spread=" << spread << " velocity=" << velocity 
     << " direction=" << direction << endl;
@@ -201,6 +205,7 @@ void Modifier::applyModifier(Sound* snd) {
 //----------------------------------------------------------------------------//
 
 void Modifier::applyModSound(Sound* snd) {
+
   if (type == "FREQUENCY" || type == "GLISSANDO"
       || type == "BEND") {
     snd->setPartialParam(FREQ_ENV, *(env_values[0]));

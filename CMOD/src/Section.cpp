@@ -88,6 +88,9 @@ time to change this.
     delete cap_;
   }
 }
+
+
+//---------------------------------------------------------------------------//
 // This function is rewrote by xiaoyi han
 bool Section::InsertNote(Note* n) {
   if (n->rootExactAncestor != time_signature_.tempo_.getRootExactAncestor()) {
@@ -99,18 +102,20 @@ bool Section::InsertNote(Note* n) {
   is_built_ = false;
 
   EnsureNoteExpressible(n);
+cout << "Section::InsertNote - note Expressible" << endl;  
 
   if (n->end_t <= n->start_t ) {
 	  return true; // Discard invalid note
   }
 
   int bar_num = n->start_t / time_signature_.bar_edus_;
-
+cout << "Section::InsertNote - bar_num=" << bar_num << endl;
   if (bar_num >= section_.size()) {
     ResizeSection(bar_num);
   }
 
   int end = n->end_t / time_signature_.bar_edus_;
+cout << "Section::InsertNote - end=" << end << endl;  
 
   // if note is out of a bar time
   if(end > bar_num){
@@ -133,6 +138,7 @@ bool Section::InsertNote(Note* n) {
     // if there is no overlap
     if(cur->start_t >= n->end_t){
       section_[bar_num].insert(iter, n);
+cout << "Section::InsertNote - no overlap" << endl;      
       return true;
     }
     // if there is overlap
@@ -209,6 +215,7 @@ bool Section::InsertNote(Note* n) {
       }
     }
     else if ((cur->start_t > n->start_t) && (cur->start_t < n->end_t)){
+cout << "Section::InsertNote - last 3" << endl;	    
       // insertnode has earlier start time
       if(cur->end_t == n->end_t){
         // if they ends at the same time
@@ -243,6 +250,7 @@ bool Section::InsertNote(Note* n) {
       
     }
   }
+cout << "Section::InsertNote - done" << endl;
   // insert the node
   section_[bar_num].insert(iter, n);
   return true;

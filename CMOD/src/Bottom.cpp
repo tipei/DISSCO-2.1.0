@@ -29,7 +29,6 @@
 #include "Output.h"
 static int test=0;
 
-
 //----------------------------------------------------------------------------//
 
 Bottom::Bottom(DOMElement* _element,
@@ -129,6 +128,7 @@ void Bottom::buildChildren(){
   }
 
   //Create the child events.
+  Utilities::lastField="Child Event Attribution";
   for (currChildNum = 0; currChildNum < numChildren; currChildNum++) {
     if (method == "0") //continuum
       checkEvent(buildContinuum());
@@ -270,7 +270,7 @@ void Bottom::buildSound(SoundAndNoteWrapper* _soundNoteWrapper) {
     		computeDeviation(_soundNoteWrapper->element), "normalized");
 
       for (int i = 0; i < numPartials; i++) {
-        currPartialNum = i; //added by ming 20130425
+        currPartialNum = i; 			//added by ming 2013.04.25
 
         //Create the next partial object.
         Partial partial;
@@ -352,6 +352,7 @@ void Bottom::buildNote(SoundAndNoteWrapper* _soundNoteWrapper) {
 //set loudness
   float loudfloat = computeLoudness();
   newNote->setLoudnessSones(loudfloat);
+cout << "Bottom::buildNote - newNote setLoudness" << endl; 
 
 // multistaffs
   //<NoteInfo>
@@ -389,11 +390,13 @@ void Bottom::buildNote(SoundAndNoteWrapper* _soundNoteWrapper) {
       _soundNoteWrapper->ts.durationEDU.To<int>());
   // Initialize the parameter split before the arrangement
   newNote->initSplit();
+cout << "Bottom::buildNote - initSplit" << endl; 
   
   // multistaffs
   //Output::notation_score_.RegisterTempo(tempo);
   Output::notation_score_.RegisterTempo(tempo,newNote->getStaffNum());
   Output::notation_score_.InsertNote(newNote);
+cout << "Bottom:: buildNote - Output::notation_score_.InsertNote" << endl;  
 
   if (utilities->getOutputParticel()){
       Output::endSubLevel();
@@ -1355,16 +1358,16 @@ void Bottom::applyModifiers(Sound *s, int numPartials) {
       }
       if (spreadStr != ""){
         newMod.addSpread(atof(spreadStr.c_str()));
-cout << "Bottom:: applyModifiers - addSpread" <<atof(spreadStr.c_str()) << endl;
-cout << "	getSpread value =" << to_string(newMod.getSpread()) << endl;
+//cout << "Bottom:: applyModifiers - addSpread" <<atof(spreadStr.c_str()) << endl;
+//`cout << "	getSpread value =" << to_string(newMod.getSpread()) << endl;
       }
       if (directionStr != ""){
         newMod.addDirection(atof(directionStr.c_str()));
-cout << "Bottom:: applyModifiers - addDirection" << atof(directionStr.c_str()) << endl;
+// cout << "Bottom:: applyModifiers - addDirection" << atof(directionStr.c_str()) << endl;
       }
       if (velocityStr != ""){
         newMod.addVelocity(atof(velocityStr.c_str()));
-cout << "Bottom:: applyModifiers - addedVelocity" << atof(velocityStr.c_str()) << endl;
+//cout << "Bottom:: applyModifiers - addedVelocity" << atof(velocityStr.c_str()) << endl;
 cout << "  " << endl;
 float vel;
       }
@@ -1380,28 +1383,29 @@ float vel;
       }
 
       /* ZIYUAN CHEN, July 2023 - Categorizing a modifier into groups */
-      arg = velocityElement->GNES();//group name
+      arg = velocityElement->GNES();		//group name
       std::stringstream ss(XMLTC(arg));
       std::string groupName;
 
-      std::getline(ss, groupName);		//added by Sever
-cout << "Bottom: applyMod - groupName: " << groupName << endl;
+std::getline(ss, groupName);		//added by Sever
+//cout << "Bottom: applyMod - groupName: " << groupName << endl;
         modGroups[groupName].push_back(newMod);
 vector<Modifier> modGroup = modGroups[groupName];
-cout << "spread value again=" <<to_string(modGroup[0].getSpread()) << endl;
+//cout << "spread value again=" <<to_string(modGroup[0].getSpread()) << endl;
 
     if(modGroups.find(groupName) != modGroups.end()) {
-cout << "       modGroups found" << endl; }
+//cout << "       modGroups found" << endl;
+    } 
 
-      newMod.applyModifier(s);
+    newMod.applyModifier(s);
 
-      // while (std::getline(ss, groupName, ',')) {
-      //   /* strip leading and trailing whitespaces to be compatible with
-      //      <List>Name1, Name2, Name3</List> in Select - RandomInt function */
-      //   groupName.erase(0, groupName.find_first_not_of(' '));
-      //   groupName.erase(groupName.find_last_not_of(' ') + 1);
-      //   modGroups[groupName].push_back(newMod);
-      // }
+//      while (std::getline(ss, groupName, ',')) {
+//      /* strip leading and trailing whitespaces to be compatible with
+//	<List>Name1, Name2, Name3</List> in Select - RandomInt function */
+//      groupName.erase(0, groupName.find_first_not_of(' '));
+//      groupName.erase(groupName.find_last_not_of(' ') + 1);
+//      modGroups[groupName].push_back(newMod);
+//    }
       delete probEnv;
     }
     else if (applyHow == "PARTIAL") {
@@ -1468,8 +1472,7 @@ cout << "       modGroups found" << endl; }
           modGroups[groupName].push_back(newPartialMod);
         }
         envelopeElement = envelopeElement->GNES();
-
-        newPartialMod.applyModifier(s);
+	newPartialMod.applyModifier(s);
       }
     }
 
@@ -1498,7 +1501,7 @@ cout << "       modGroups found" << endl; }
   */
 
   string targetModGroupName = XMLTC(modifierGroupElement);
-  cout << "  targetModGroupName1: " << targetModGroupName << endl;
+//cout << "  targetModGroupName: " << targetModGroupName << endl;
 
   if (targetModGroupName.find("<Fun>") != string::npos) { // evaluate if it's function string
 
@@ -1514,17 +1517,18 @@ cout << "       modGroups found" << endl; }
     }
 
   }
-
+/*
   // ZIYUAN CHEN, July 2023 - apply the specified one (1) group of modifiers
-  // if (modGroups.find(targetModGroupName) != modGroups.end()) {
-  //   cout << "	targetModGroupName2:" << targetModGroupName << endl;
-  //   vector<Modifier> modGroup = modGroups[targetModGroupName];
-  //   for (int i = 0; i < modGroup.size(); i++) {
-  //     modGroup[i].applyModifier(s);
-  //   }
-  // } else {
-  //   cerr << "WARNING: Specified modifier group " << targetModGroupName << " not found!" << endl;
-  // }
+  if (modGroups.find(targetModGroupName) != modGroups.end()) {
+//cout << "	targetModGroupNam:" << targetModGroupName << endl;
+    vector<Modifier> modGroup = modGroups[targetModGroupName];
+    for (int i = 0; i < modGroup.size(); i++) {
+      modGroup[i].applyModifier(s);
+    }
+  } else {
+    cerr << "WARNING: Specified modifier group " << targetModGroupName << " not found!" << endl;
+  }
+*/
 
   //delete modifiersIncludingAncestorsElement;
 }
@@ -1735,6 +1739,8 @@ vector<string> Bottom::applyNoteModifiers( DOMElement* _playingMethods) {
     modNames.push_back(name);
     currentTechnique = currentTechnique->GNES();
   }
+
+cout << "Bottom::applyNoteMod" << endl;  
 
   return modNames;
 }

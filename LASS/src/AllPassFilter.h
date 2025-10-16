@@ -108,6 +108,8 @@ public:
 	**/
 	void xml_read( XmlReader::xmltag *apftag);
 
+	SoundSample *do_filter_SoundSample(SoundSample *inWave);
+
 	float get_g();
 	long get_D();
 private:

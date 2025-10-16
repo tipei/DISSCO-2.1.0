@@ -66,6 +66,26 @@ m_sample_type LowPassFilter::do_filter(m_sample_type x_t)
 	return y_t;
 }
 
+SoundSample *LowPassFilter::do_filter_SoundSample(SoundSample *inWave)
+{
+  
+  
+	int i;
+	SoundSample *outWave;
+
+	// create new SoundSample
+	outWave = new SoundSample(inWave->getSampleCount(),
+							  inWave->getSamplingRate());
+
+	for(i=0;i<inWave->getSampleCount();i++)
+	{
+		(*outWave)[i] = do_filter((*inWave)[i]);
+//	outWave->operator[](i) = do_filter(inWave->operator[](i));
+	}
+
+	return outWave;
+}
+
 //----------------------------------------------------------------------------//
 void LowPassFilter::reset()
 {

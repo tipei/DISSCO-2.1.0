@@ -130,6 +130,15 @@ enum PartialStaticParam
 *       - FREQTRANS_WIDTH
 *               -the width of any frequency transient in samples
 *               - defaults to 1103, or 0.025 seconds.
+*       - CARRIER_PHASE
+*               - static phase offset applied to the carrier oscillator
+*               - lets you keep multiple partials in or out of phase even without modulation
+*       - PHASE_AMP_ENV
+*               - depth of the phase modulator (in radians of offset)
+*               - envelope values scale the modulation sine before it is added to the carrier
+*       - PHASE_RATE_ENV
+*               - rate of the phase modulator (in Hz, same as vibrato rate handling)
+*               - envelope values determine how quickly the phase modulation LFO advances
 **/
 enum PartialDynamicParam
 {
@@ -139,7 +148,6 @@ enum PartialDynamicParam
     TREMOLO_RATE,
     VIBRATO_AMP,
     VIBRATO_RATE,
-    PHASE,
     //FREQUENCY_DEVIATION,
     LOUDNESS_SCALAR,
     //GLISSANDO_ENV,
@@ -150,7 +158,10 @@ enum PartialDynamicParam
     FREQTRANS_AMP_ENV,
     FREQTRANS_RATE_ENV,
     AMPTRANS_WIDTH,
-    FREQTRANS_WIDTH
+    FREQTRANS_WIDTH,
+	CARRIER_PHASE,
+	PHASE_AMP_ENV,
+	PHASE_RATE_ENV
 };
 
 // the loudness routines will look at RELATIVE_AMPLITUDE, FREQUENCY,
@@ -173,6 +184,7 @@ public:
 	 * - LOUDNESS_SCALAR = 1.0
 	 * - All trans envelopes = 0
 	 * - Both TRANS_WIDTH = 1103
+	 * - CARRIER_PHASE = 0
 	 **/
 	Partial();
     

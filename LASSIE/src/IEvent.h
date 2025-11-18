@@ -559,6 +559,8 @@ public:
     virtual void  setFrequencyEntry2(std::string _string){}
     virtual std::string  getLoudness(){return "";}
     virtual void  setLoudness(std::string _string){}
+    virtual std::string  getPhaseCarrier(){return "";}
+    virtual void  setPhaseCarrier(std::string _string){}
     virtual std::string  getSpatialization(){return "";}
     virtual void  setSpatialization(std::string _string){}
     virtual std::string  getReverb(){return "";}
@@ -627,6 +629,8 @@ public:
     void  setFrequencyEntry2(std::string _string);
     std::string  getLoudness();
     void  setLoudness(std::string _string);
+    std::string  getPhaseCarrier();
+    void  setPhaseCarrier(std::string _string);
     std::string  getSpatialization();
     void  setSpatialization(std::string _string);
     std::string  getReverb();
@@ -652,6 +656,7 @@ public:
     std::string frequencyEntry1;
     std::string frequencyEntry2;
     std::string loudness;
+    std::string phaseCarrier;
     std::string spatialization;
     std::string reverb;
     std::string filter;

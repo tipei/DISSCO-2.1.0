@@ -58,6 +58,7 @@ Bottom::Bottom(DOMElement* _element,
       <FrequencyEntry2/>
     </FrequencyInfo>
     <Loudness>4</Loudness>
+    <Phase>2</Phase>
     <Spatialization>5</Spatialization>
     <Reverb>6</Reverb>
     <Filter>f</Filter>
@@ -69,31 +70,33 @@ Bottom::Bottom(DOMElement* _element,
 
   frequencyElement = extraInfo->GFEC();
   loudnessElement = frequencyElement->GNES();
+  phaseElement = loudnessElement->GNES();   /* SHAOSHAO XIONG, Nov 2025 - carrier wave element*/
+
   if (_ancestorSpa != NULL){
     spatializationElement = _ancestorSpa;
   }
   else {
-    spatializationElement = loudnessElement->GNES();
+    spatializationElement = phaseElement->GNES();
   }
 
   if (_ancestorRev != NULL){
     reverberationElement = _ancestorRev;
   }
   else {
-    reverberationElement = loudnessElement->GNES()->GNES();
+    reverberationElement = phaseElement->GNES()->GNES();
   }
 
   if (_ancestorFil != NULL){
     filterElement = _ancestorFil;
   }
   else {
-    filterElement = loudnessElement->GNES()->GNES()->GNES();
+    filterElement = phaseElement->GNES()->GNES()->GNES();
   }
 
   /* ZIYUAN CHEN, July 2023 */
-  modifierGroupElement = loudnessElement->GNES()->GNES()->GNES()->GNES();
+  modifierGroupElement = phaseElement->GNES()->GNES()->GNES()->GNES();
 
-  modifiersElement = loudnessElement->GNES()->GNES()->GNES()->GNES()->GNES();
+  modifiersElement = phaseElement->GNES()->GNES()->GNES()->GNES()->GNES();
 
 }
 
@@ -241,6 +244,11 @@ void Bottom::buildSound(SoundAndNoteWrapper* _soundNoteWrapper) {
   newSound->setParam(LOUDNESS, loudSones);
   if (utilities->getOutputParticel())Output::addProperty("Loudness", loudSones, "sones");
 
+  //Set the phase - Added Nov 2025, SHAOSHAO XIONG
+  float startPhase = computePhase();
+  // newSound->setParam(CARRIER_PHASE, startPhase);
+  if (utilities->getOutputParticel())Output::addProperty("Carrier Phase", startPhase);
+
   int numPartials = computeNumPartials( baseFrequency ,_soundNoteWrapper->element );
 
  //Element for GenSpectrum
@@ -277,6 +285,9 @@ void Bottom::buildSound(SoundAndNoteWrapper* _soundNoteWrapper) {
 
         //Set the partial number of the partial based on the current index.
         partial.setParam(PARTIAL_NUM, i);
+
+        //Set the carrier phase
+        partial.setParam(CARRIER_PHASE, startPhase);
 
         //Compute the deviation for partials above the fundamental.
         double deviation = 0;
@@ -467,6 +478,12 @@ float Bottom::computeLoudness() {
   // cout << "bottom loudness: " << loudval << endl;
   // cout << "bottom expval: " << expVal << endl;
   return loudval;
+}
+
+//----------------------------------------------------------------------------//
+
+float Bottom::computePhase() {
+  return utilities->evaluate(XMLTC(phaseElement), (void*)this);
 }
 
 //----------------------------------------------------------------------------//
@@ -1305,6 +1322,7 @@ void Bottom::applyModifiers(Sound *s, int numPartials) {
       case 4: modType = "AMPTRANS"; break;
       case 5: modType = "FREQTRANS"; break;
       case 6: modType = "WAVE_TYPE"; break;
+      case 7: modType = "PHASE_MOD"; break;
     }
     //cout<<"Mod Type: "<<modType<<endl;
     arg = arg->GNES();
@@ -1318,7 +1336,7 @@ void Bottom::applyModifiers(Sound *s, int numPartials) {
     string ampStr, spreadStr, directionStr, velocityStr, rateStr, widthStr, probStr, partialResultStr;
 
     // Only evaluate the envelope if we apply by SOUND. Otherwise, may segfault on empty probability envelopes.
-    if (applyHow == "SOUND") {
+    if (applyHow == "SOUND") { 
       probEnv = (Envelope*)utilities->evaluateObject(XMLTC(arg), this, eventEnv);
       probStr = XMLTC(arg);
     }

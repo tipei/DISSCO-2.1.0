@@ -58,6 +58,10 @@ class Bottom : public Event {
     DOMElement* frequencyElement;
     DOMElement* loudnessElement;
     DOMElement* modifiersElement;
+
+    /* SHAOSHAO XIONG, Nov 2025 - added new DOMElement for phase modulation */
+    DOMElement* phaseElement;
+
     /* ZIYUAN CHEN, July 2023 - The "Modifier Group" is only present
        in Bottom events, so this element doesn't appear in Event.h */
     DOMElement* modifierGroupElement;
@@ -207,6 +211,11 @@ class Bottom : public Event {
      *  Computes a loudness value for the bottom event
      **/
     float computeLoudness();
+
+    /**
+     *  Computes a phase value for the bottom event
+     **/
+    float computePhase();
 
     /**
      *  Computes the number of partials to create

@@ -94,10 +94,14 @@ Bottom::Bottom(DOMElement* _element,
   }
 
   /* ZIYUAN CHEN, July 2023 */
-  modifierGroupElement = phaseElement->GNES()->GNES()->GNES()->GNES();
+  // modifierGroupElement = phaseElement->GNES()->GNES()->GNES()->GNES();
+  XMLCh* modifierGroupString = XMLString::transcode("ModifierGroup");
+  DOMNodeList* modifierGroupList = _element->getElementsByTagName(modifierGroupString);
+  modifierGroupElement = (DOMElement*) modifierGroupList->item(0);
+  XMLString::release(&modifierGroupString);
 
-  modifiersElement = phaseElement->GNES()->GNES()->GNES()->GNES()->GNES();
-
+  // modifiersElement = phaseElement->GNES()->GNES()->GNES()->GNES()->GNES();
+  modifiersElement = modifierGroupElement->GNES();
 }
 
 
@@ -1290,12 +1294,12 @@ void Bottom::applyModifiers(Sound *s, int numPartials) {
 
   }// end handling ancestorModifiers
 
-  //cout<<"Bottom-"<<name<<": Modifiers after merge:"<<XMLTC(modifiersIncludingAncestorsElement)<<endl<<endl<<"============="<<endl;
-
-
+  // cout<<"Bottom-"<<name<<": Modifiers after merge:"<<XMLTC(modifiersIncludingAncestorsElement)<<endl<<endl<<"============="<<endl;
 
   DOMElement* modifierElement = modifiersIncludingAncestorsElement->GFEC();
+
   while (modifierElement!=NULL) {
+  // cout<<"current modifierElement: "<<XMLTC(modifierElement)<<endl;
 
 //    <Modifier>
 //      <Type>7</Type>

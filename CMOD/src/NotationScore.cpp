@@ -9,7 +9,8 @@ NotationScore::NotationScore() :
 //     score_title_(score_title) {
 //     }
 
-// multistaffs
+
+//---------------------------------------------------------------------------//
 NotationScore::NotationScore(const string& score_title,bool grandStaff, int numberOfStaff) :
     is_built_(false),
     score_title_(score_title) {
@@ -44,7 +45,8 @@ NotationScore::NotationScore(const string& score_title,bool grandStaff, int numb
 //   }
 // }
 
-// multistaffs
+
+//---------------------------------------------------------------------------//
 void NotationScore::RegisterTempo(Tempo& tempo,int staffNum) {
   // make sure staffNum is a valid number
   // start from 0
@@ -82,7 +84,8 @@ void NotationScore::RegisterTempo(Tempo& tempo,int staffNum) {
 //   }
 // }
 
-// multistaffs
+
+//---------------------------------------------------------------------------//
 void NotationScore::InsertNote(Note* n) {
   // judge if the staff number is out of range
   if(n->getStaffNum()>=staffSum){
@@ -95,7 +98,7 @@ void NotationScore::InsertNote(Note* n) {
 
   vector<Section>::iterator section_iter = score_staff[n->getStaffNum()].begin();
   while (section_iter != score_staff[n->getStaffNum()].end() && !(*section_iter).InsertNote(n)) ++section_iter;
-
+cout << "NotationScore::InsertNote" << endl;
   if (section_iter == score_staff[n->getStaffNum()].end()) {
     cerr << "Note does not belong to any section in the score!" << endl;
     exit(1);
@@ -123,7 +126,8 @@ void NotationScore::InsertNote(Note* n) {
 //   }
 // }
 
-// multistaffs
+
+//---------------------------------------------------------------------------//
 void NotationScore::Build() {
   if (!is_built_) {
     for(int i=0 ; i<staffSum; i++){
@@ -186,7 +190,8 @@ void NotationScore::Build() {
 //   return output_stream;
 // }
 
-// multistaffs
+
+//---------------------------------------------------------------------------//
 ostream& operator<<(ostream& output_stream,
                     NotationScore& notation_score) {
   if (!notation_score.is_built_) {
@@ -228,12 +233,15 @@ ostream& operator<<(ostream& output_stream,
             iter_iter != section_flat.end();
             ++iter_iter) {
           Note*& cur_note = *iter_iter;
+cout << "Notationscore - cur_note: " << cur_note->GetText() << endl;
           notes_stream = notes_stream + cur_note->GetText();
           if(cur_note->is_real_note()){
             avePitchNum = avePitchNum + cur_note->getPitchNum();
+cout << "	pitchNum= " << cur_note->getPitchNum() << endl;
             pitchSum = pitchSum + 1;
           }
         }
+cout << "Notationscore - avePitcNum=" << avePitchNum << " pitchSum=" << pitchSum << endl;
         avePitchNum = avePitchNum / pitchSum;
         // if the average pitch number isn't smaller than 48, choose treble
         // else choose bass

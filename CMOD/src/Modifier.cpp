@@ -129,6 +129,9 @@ void Modifier::addSpread(double spread_){
   spread = spread_;
 }
 
+double Modifier::getSpread() {
+return spread; }
+
 //----------------------------------------------------------------------------//
 
 void Modifier::addDirection(double dir_){
@@ -186,6 +189,7 @@ bool Modifier::willOccur(double checkPoint) {
 //----------------------------------------------------------------------------//
 
 void Modifier::applyModifier(Sound* snd) {
+
   if (applyHow == "SOUND") {
     applyModSound(snd);
   } else if (applyHow == "PARTIAL") {
@@ -196,6 +200,7 @@ void Modifier::applyModifier(Sound* snd) {
 //----------------------------------------------------------------------------//
 
 void Modifier::applyModSound(Sound* snd) {
+
   if (type == "FREQUENCY" || type == "GLISSANDO"
       || type == "BEND") {
     snd->setPartialParam(FREQ_ENV, *(env_values[0]));

@@ -3915,29 +3915,37 @@ void BottomEventModifierAlignment::grayOutModifierFields(ModifierType type) {
       attributesRefBuilder->get_widget("partialResultStringEntry", entry);
       if (applyType == "SOUND") {
         entry->set_sensitive(false);
+	entry->set_text("");
       } else if (applyType == "PARTIAL") {  //If partials, only allow partialResultStringEntry to be modified
         entry->set_sensitive(type!=modifierDetune); //if type is detune prevent all inputs since it's invalid
 
         attributesRefBuilder->get_widget("probablityEnvelopeEntry", entry);
         entry->set_sensitive(false);
+        entry->set_text("");
 
         attributesRefBuilder->get_widget("ampValueEnvelopeEntry", entry);
         entry->set_sensitive(false);
+        entry->set_text("");
 
         attributesRefBuilder->get_widget("rateValueEnvelopeEntry", entry);
         entry->set_sensitive(false);
+        entry->set_text("");
 
         attributesRefBuilder->get_widget("widthEnvelopeEntry", entry);
         entry->set_sensitive(false);
+        entry->set_text("");
 
         attributesRefBuilder->get_widget("SpreadEntry", entry);
         entry->set_sensitive(false);
+        entry->set_text("");
 
         attributesRefBuilder->get_widget("VelocityEntry", entry);
         entry->set_sensitive(false);
+        entry->set_text("");
 
         attributesRefBuilder->get_widget("DirectionEntry", entry);
         entry->set_sensitive(false);
+        entry->set_text("");
 
         return;
       }
@@ -3957,15 +3965,20 @@ void BottomEventModifierAlignment::grayOutModifierFields(ModifierType type) {
 
     attributesRefBuilder->get_widget("widthEnvelopeEntry", entry);
     entry->set_sensitive(false);
+    entry->set_text("");
 
     attributesRefBuilder->get_widget("SpreadEntry", entry);
     entry->set_sensitive(false);
+    entry->set_text("");
 
     attributesRefBuilder->get_widget("VelocityEntry", entry);
     entry->set_sensitive(false);
+    entry->set_text("");
 
     attributesRefBuilder->get_widget("DirectionEntry", entry);
     entry->set_sensitive(false);
+    entry->set_text("");
+
   } else if (type == modifierAmptrans || type == modifierFreqtrans) {
 
     attributesRefBuilder->get_widget("probablityEnvelopeEntry", entry);
@@ -3982,25 +3995,32 @@ void BottomEventModifierAlignment::grayOutModifierFields(ModifierType type) {
 
     attributesRefBuilder->get_widget("SpreadEntry", entry);
     entry->set_sensitive(false);
+    entry->set_text("");
 
     attributesRefBuilder->get_widget("VelocityEntry", entry);
     entry->set_sensitive(false);
+    entry->set_text("");
 
     attributesRefBuilder->get_widget("DirectionEntry", entry);
     entry->set_sensitive(false);
+    entry->set_text("");
+
   } else if (type == modifierDetune) {
 
     attributesRefBuilder->get_widget("probablityEnvelopeEntry", entry);
-    entry->set_sensitive(false);
+    entry->set_sensitive(true);
 
     attributesRefBuilder->get_widget("ampValueEnvelopeEntry", entry);
     entry->set_sensitive(false);
+    entry->set_text("");
 
     attributesRefBuilder->get_widget("rateValueEnvelopeEntry", entry);
     entry->set_sensitive(false);
+    entry->set_text("");
 
     attributesRefBuilder->get_widget("widthEnvelopeEntry", entry);
     entry->set_sensitive(false);
+    entry->set_text("");
 
     attributesRefBuilder->get_widget("SpreadEntry", entry);
     entry->set_sensitive(true);
@@ -4020,18 +4040,24 @@ void BottomEventModifierAlignment::grayOutModifierFields(ModifierType type) {
 
     attributesRefBuilder->get_widget("rateValueEnvelopeEntry", entry);
     entry->set_sensitive(false);
+    entry->set_text("");
 
     attributesRefBuilder->get_widget("widthEnvelopeEntry", entry);
     entry->set_sensitive(false);
+    entry->set_text("");
 
     attributesRefBuilder->get_widget("SpreadEntry", entry);
     entry->set_sensitive(false);
+    entry->set_text("");
 
     attributesRefBuilder->get_widget("VelocityEntry", entry);
     entry->set_sensitive(false);
+    entry->set_text("");
 
     attributesRefBuilder->get_widget("DirectionEntry", entry);
     entry->set_sensitive(false);
+    entry->set_text("");
+
   } else if (type == modifierWave_type) {
 
     attributesRefBuilder->get_widget("probablityEnvelopeEntry", entry);
@@ -4045,15 +4071,19 @@ void BottomEventModifierAlignment::grayOutModifierFields(ModifierType type) {
 
     attributesRefBuilder->get_widget("widthEnvelopeEntry", entry);
     entry->set_sensitive(false);
+    entry->set_text("");
 
     attributesRefBuilder->get_widget("SpreadEntry", entry);
     entry->set_sensitive(false);
+    entry->set_text("");
 
     attributesRefBuilder->get_widget("VelocityEntry", entry);
     entry->set_sensitive(false);
+    entry->set_text("");
 
     attributesRefBuilder->get_widget("DirectionEntry", entry);
     entry->set_sensitive(false);
+    entry->set_text("");
   } 
 }
 
@@ -4927,14 +4957,16 @@ void BottomEventModifierAlignment::ampValueEnvelopeButtonClicked(){
   Gtk::Entry* entry;
   attributesRefBuilder->get_widget(
     "ampValueEnvelopeEntry", entry);
-  FunctionGenerator* generator =
-    new FunctionGenerator(functionReturnENV,entry->get_text());
-  int result = generator->run();
-  if (generator->getResultString() !=""&& result ==0){
+
+  if (entry->get_sensitive()){
+    FunctionGenerator* generator =
+      new FunctionGenerator(functionReturnENV,entry->get_text());
+    int result = generator->run();
+    if (generator->getResultString() !=""&& result ==0){
       entry->set_text(generator->getResultString());
     }
-  delete generator;
-
+    delete generator;
+  }
 }
 
 void BottomEventModifierAlignment::rateValueEnvelopeButtonClicked(){

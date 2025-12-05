@@ -2626,22 +2626,31 @@ FunctionGenerator::FunctionGenerator(
 
     REVMethodFlag = 0;
     thisElement = functionNameElement->getNextElementSibling();    // one argument
+
     //Add ApplyHow to REV_Simple
-    if(getFunctionString(thisElement)=="SOUND"){
+      if(getFunctionString(thisElement)=="SOUND"){
+        REVApplyFlag = 0;
+        attributesRefBuilder->get_widget("REVSoundRadioButton",radiobutton);
+        radiobutton->set_active();
+
+      }
+
+      else if(getFunctionString(thisElement)=="PARTIAL") {   //partial
+        REVApplyFlag = 1;
+        attributesRefBuilder->get_widget("REVPartialRadioButton",radiobutton);
+        radiobutton->set_active();
+      }
+      else{
       REVApplyFlag = 0;
       attributesRefBuilder->get_widget("REVSoundRadioButton",radiobutton);
       radiobutton->set_active();
-
-    }
-
-    else {   //partial
-      REVApplyFlag = 1;
-      attributesRefBuilder->get_widget("REVPartialRadioButton",radiobutton);
-      radiobutton->set_active();
-    }
+      }
 
     // <Sizes>
     thisElement = thisElement->getNextElementSibling();
+    if(thisElement==nullptr){
+      thisElement = functionNameElement->getNextElementSibling();
+    }
 
     // First <Size>
     DOMElement* currentPartialElement = thisElement->getFirstElementChild();

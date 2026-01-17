@@ -210,8 +210,9 @@ void Modifier::applyModSound(Sound* snd) {
   } else if (type == "VIBRATO") {
     snd->setPartialParam(VIBRATO_AMP, *(env_values[0]));
     snd->setPartialParam(VIBRATO_RATE, *(env_values[1]));
-  } else if (type == "PHASE") {
-    snd->setPartialParam(PHASE, *(env_values[0]));
+  } else if (type == "PHASE_MOD") {
+    snd->setPartialParam(PHASE_AMP_ENV, *(env_values[0]));
+    snd->setPartialParam(PHASE_RATE_ENV, *(env_values[1]));
   } else if (type == "AMPTRANS") {
     snd->setPartialParam(AMPTRANS_AMP_ENV, *(env_values[0]));
     snd->setPartialParam(AMPTRANS_RATE_ENV, *(env_values[1]));
@@ -224,7 +225,7 @@ void Modifier::applyModSound(Sound* snd) {
     snd->setPartialParam(WAVE_TYPE, env_values[0]->getValue(checkPt, 1));
   } else if (type == "DETUNE"){
     snd->setDetune(direction, spread, velocity);
-  }else {
+  } else {
     cerr << "ERROR: Modifier given an invalid type: " << type << endl;
     exit(1);
   }
@@ -258,8 +259,11 @@ void Modifier::applyModPartial(Sound* snd) {
     snd->get(partialNum).setParam(VIBRATO_RATE, *(env_values.front()));
     delete env_values.front();
     env_values.pop_front();
-  } else if (type == "PHASE") {
-    snd->get(partialNum).setParam(PHASE, *(env_values.front()));
+  } else if (type == "PHASE_MOD") {
+    snd->get(partialNum).setParam(PHASE_AMP_ENV, *(env_values.front()));
+    delete env_values.front();
+    env_values.pop_front();
+    snd->get(partialNum).setParam(PHASE_RATE_ENV, *(env_values.front()));
     delete env_values.front();
     env_values.pop_front();
   } else if (type == "AMPTRANS") {

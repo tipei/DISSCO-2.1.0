@@ -809,6 +809,7 @@ IEvent::BottomEventExtraInfo::BottomEventExtraInfo(){
   frequencyEntry1 = "";
   frequencyEntry2 = "";
   loudness = "";
+  phaseCarrier = "";
   spatialization = "";
   reverb = "";    
   modifiers = NULL;
@@ -853,6 +854,14 @@ std::string  IEvent::BottomEventExtraInfo::getLoudness(){
 void  IEvent::BottomEventExtraInfo::setLoudness(std::string _string){
   loudness = _string;
 }
+
+std::string  IEvent::BottomEventExtraInfo::getPhaseCarrier(){
+  return phaseCarrier;
+}
+void  IEvent::BottomEventExtraInfo::setPhaseCarrier(std::string _string){
+  phaseCarrier = _string;
+}
+
 std::string  IEvent::BottomEventExtraInfo::getSpatialization(){
   return spatialization;
 }
@@ -1059,8 +1068,11 @@ int EventBottomModifier::getModifierTypeInt(){
   else if (type ==  modifierFreqtrans){
     return 5;
   }
-  else {
+  else if (type == modifierWave_type){
     return 6;
+  }
+  else if (type == modifierPhase) {
+    return 7;
   }
 }
 
@@ -1102,6 +1114,16 @@ std::string EventBottomModifier::getSaveToDiskString(){
       ",\n                <\"MUT_EX\", \"" + groupName +
       "\">\n              >"));
   }
+  // else if (type == modifierPhase){
+  //   stringbuffer ="              <\n"
+  //     "                \"PHASE\",\n"
+  //     "                "+ probability + ",\n"
+  //     "                "+ ((applyHowFlag ==0)?"\"SOUND\",\n":"\"PARTIAL\",\n") +
+  //     "                "+ ampValue +
+  //     ((groupName ==""||groupName =="")?"\n              >":(
+  //     ",\n                <\"MUT_EX\", \"" + groupName +
+  //     "\">\n              >"));
+  // }
   else if (type == modifierDetune){
     stringbuffer ="              <\n"
       "                \"DETUNE\",\n"
@@ -1308,6 +1330,9 @@ IEvent::BottomEventExtraInfo::BottomEventExtraInfo(int _childTypeFlag){
 
   value = file_data["LASSIEBOTTOMloudness"];
   loudness  = (value == NULL)? "": value->getString();
+
+  // value = file_data["LASSIEBOTTOMphaseCarrier"];
+  // phaseCarrier  = (value == NULL)? "": value->getString();
 
   value = file_data["LASSIEBOTTOMspatialization"];
   spatialization  = (value == NULL)? "": value->getString();
@@ -1998,6 +2023,7 @@ IEvent::BottomEventExtraInfo::BottomEventExtraInfo(
   frequencyEntry1 = _original->frequencyEntry1;
   frequencyEntry2 = _original->frequencyEntry2;
   loudness = _original->loudness;
+  // phaseCarrier = _original->phaseCarrier;
   spatialization = _original->spatialization;
   reverb = _original->reverb;
   modifierGroup = _original->modifierGroup; // ZIYUAN CHEN, July 2023
@@ -2315,6 +2341,12 @@ bool IEvent::BottomEventExtraInfo::haveString(string _string){
   if (position != -1){
     return true;
   }
+
+  // position = phaseCarrier.find (_string, 0);
+  // if (position != -1){
+  //   return true;
+  // }
+
   position = spatialization.find (_string, 0);
   if (position != -1){
     return true;
@@ -2535,6 +2567,7 @@ string IEvent::getXMLTHMLB(){
         "          <FrequencyEntry2>" + extraInfo->getFrequencyEntry2() + "</FrequencyEntry2>\n"
         "        </FrequencyInfo>\n"
         "        <Loudness>" + extraInfo->getLoudness() + "</Loudness>\n"
+        // "        <PhaseCarrier>" + extraInfo->getPhaseCarrier() + "</PhaseCarrier>\n"
         "        <Spatialization>" + extraInfo->getSpatialization() + "</Spatialization>\n"
         "        <Reverb>" + extraInfo->getReverb() + "</Reverb>\n"
         "        <Filter>" + extraInfo->getFilter() + "</Filter>\n"
@@ -3022,6 +3055,9 @@ IEvent::BottomEventExtraInfo::BottomEventExtraInfo(int _childTypeFlag, DOMElemen
   thisElement = _thisElement->getFirstElementChild()->getNextElementSibling();
   //thisElement = thisElement->getNextElementSibling();
   loudness = getFunctionString(thisElement);
+
+  // thisElement = _thisElement->getNextElementSibling();
+  // phaseCarrier = getFunctionString(thisElement);
 
   thisElement = thisElement->getNextElementSibling();
   spatialization = getFunctionString(thisElement);;

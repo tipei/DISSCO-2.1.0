@@ -114,7 +114,8 @@ typedef enum{
   modifierDetune = 3,
   modifierAmptrans = 4,
   modifierFreqtrans = 5,
-  modifierWave_type = 6
+  modifierWave_type = 6,
+  modifierPhase = 7
 } ModifierType;
 
 

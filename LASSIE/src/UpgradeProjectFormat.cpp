@@ -733,6 +733,9 @@ string convertEvent(string _eventPathAndName, EventType _type){
       value = file_data["LASSIEBOTTOMloudness"];
       string loudness  = (value == NULL)? "": convertFunctionFromLASSIEMetaData(value->getString());
 
+      // value = file_data["LASSIEBOTTOMphaseCarrier"];
+      // string phaseCarrier  = (value == NULL)? "": convertFunctionFromLASSIEMetaData(value->getString());
+
       value = file_data["LASSIEBOTTOMspatialization"];
       string spatialization  = (value == NULL)? "": convertFunctionFromLASSIEMetaData(value->getString());
 
@@ -822,6 +825,7 @@ string convertEvent(string _eventPathAndName, EventType _type){
         "          <FrequencyEntry2>" + frequencyEntry2 + "</FrequencyEntry2>\n"
         "        </FrequencyInfo>\n"
         "        <Loudness>" + loudness + "</Loudness>\n"
+        // "        <PhaseCarrier>" + phaseCarrier + "</PhaseCarrier>\n"
         "        <Spatialization>" + spatialization + "</Spatialization>\n"
         "        <Reverb>" + reverb + "</Reverb>\n"
         "        <Filter />"

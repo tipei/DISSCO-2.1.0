@@ -3920,11 +3920,11 @@ void BottomEventModifierAlignment::grayOutModifierFields(ModifierType type) {
         entry->set_sensitive(type!=modifierDetune); //if type is detune prevent all inputs since it's invalid
 
         attributesRefBuilder->get_widget("probablityEnvelopeEntry", entry);
-        entry->set_sensitive(false);
+        entry->set_sensitive(true);
         entry->set_text("");
 
         attributesRefBuilder->get_widget("ampValueEnvelopeEntry", entry);
-        entry->set_sensitive(false);
+        entry->set_sensitive(true);
         entry->set_text("");
 
         attributesRefBuilder->get_widget("rateValueEnvelopeEntry", entry);
@@ -4031,6 +4031,34 @@ void BottomEventModifierAlignment::grayOutModifierFields(ModifierType type) {
     attributesRefBuilder->get_widget("DirectionEntry", entry);
     entry->set_sensitive(true);
   } else if (type == modifierGlissando) {
+
+    attributesRefBuilder->get_widget("probablityEnvelopeEntry", entry);
+    entry->set_sensitive(true);
+
+    attributesRefBuilder->get_widget("ampValueEnvelopeEntry", entry);
+    entry->set_sensitive(true);
+
+    attributesRefBuilder->get_widget("rateValueEnvelopeEntry", entry);
+    entry->set_sensitive(false);
+    entry->set_text("");
+
+    attributesRefBuilder->get_widget("widthEnvelopeEntry", entry);
+    entry->set_sensitive(false);
+    entry->set_text("");
+
+    attributesRefBuilder->get_widget("SpreadEntry", entry);
+    entry->set_sensitive(false);
+    entry->set_text("");
+
+    attributesRefBuilder->get_widget("VelocityEntry", entry);
+    entry->set_sensitive(false);
+    entry->set_text("");
+
+    attributesRefBuilder->get_widget("DirectionEntry", entry);
+    entry->set_sensitive(false);
+    entry->set_text("");
+
+  } else if (type == modifierPhase) {
 
     attributesRefBuilder->get_widget("probablityEnvelopeEntry", entry);
     entry->set_sensitive(true);
@@ -4175,6 +4203,10 @@ BottomEventModifierAlignment::BottomEventModifierAlignment(
   row = *(typeTreeModel->append());
   row[typeColumns.m_col_type] = modifierGlissando;
   row[typeColumns.m_col_name] = "GLISSANDO";
+
+  row = *(typeTreeModel->append());
+  row[typeColumns.m_col_type] = modifierPhase;
+  row[typeColumns.m_col_name] = "PHASE";
 
   row = *(typeTreeModel->append());
   row[typeColumns.m_col_type] = modifierDetune;

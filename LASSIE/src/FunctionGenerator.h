@@ -153,9 +153,9 @@ public:
     SPAPartialAlignment* prevChan;
     SPAPartialAlignment* nextChan;
     SPAChannelAlignment* parentChannel;
+    FunctionGenerator* parent;
   private:
     Glib::RefPtr<Gtk::Builder> attributesRefBuilder;
-    FunctionGenerator* parent;
 
     void textChanged();
 
@@ -180,9 +180,9 @@ public:
     void refreshPartialNumbersAndLayout();
     REVPartialAlignment* next;
     REVPartialAlignment* prev;
+    FunctionGenerator* parent;
   private:
     Glib::RefPtr<Gtk::Builder> attributesRefBuilder;
-    FunctionGenerator* parent;
 
     void textChanged();
 

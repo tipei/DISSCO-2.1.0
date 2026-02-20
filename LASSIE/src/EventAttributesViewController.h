@@ -110,6 +110,10 @@ protected:
   void grayOutModifierFields(ModifierType type);
   void removeModifierButtonClicked();
 
+  void detuneSpreadButtonClicked();
+  void detuneDirectionButtonClicked();
+  void detuneVelocityButtonClicked();
+
   void probablityEnvelopeButtonClicked();
   void ampValueEnvelopeButtonClicked();
   void rateValueEnvelopeButtonClicked();

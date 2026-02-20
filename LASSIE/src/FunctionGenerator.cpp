@@ -516,6 +516,9 @@ FunctionGenerator::FunctionGenerator(
     row[functionListColumns.m_col_id] = functionSelect;
     row[functionListColumns.m_col_name] = "Select";
 
+    row = *(functionListTreeModel->append());
+    row[functionListColumns.m_col_id] = functionStochos;
+    row[functionListColumns.m_col_name] = "Stochos";
 
   }
 
@@ -6613,8 +6616,7 @@ void FunctionGenerator::SPAInsertChannel(SPAChannelAlignment* _insertAfter){
 }
 
 void FunctionGenerator::SPARemovePartial(SPAPartialAlignment* _remove){
-
-  if (SPANumOfPartials==1||SPAApplyFlag==0){
+  if (SPANumOfPartials==1){
     return;
   }
 
@@ -6811,16 +6813,17 @@ void FunctionGenerator::SPAApplyByRadioButtonClicked(){
     SPAChannelAlignment* temp = SPAChannelAlignments;
 
     while (temp != NULL){ //each channel
-      SPAPartialAlignment* firstPartial = temp->partials;
-      if (firstPartial!=NULL){
-        firstPartial->setLabel("Envelope");
+      SPAPartialAlignment* partial = temp->partials;
+      FunctionGenerator* parent = partial->parent;
+      while (partial->next != NULL){
+        // partial->entryEditSwitch(OFF);
+        partial->entryEditSwitch(ON);
+        SPAPartialAlignment * next_partial = partial->next;
+        parent->SPARemovePartial(partial);
+        partial = next_partial;
       }
-
-      SPAPartialAlignment* partial = temp->partials->next;
-      while (partial!= NULL){
-        partial->entryEditSwitch(OFF);
-        partial = partial->next;
-      }
+      partial->setLabel("Envelope");
+      partial->setText("");
       temp = temp->next;
     }
 
@@ -7118,11 +7121,11 @@ void FunctionGenerator::REVRemovePartial(REVPartialAlignment* _remove){
    * should be forcefully removed before being replaced by new ones. Otherwise,
    * this creates an infinite loop in function_list_combo_changed()!
    */
-  if ((REVNumOfPartials==1||REVApplyFlag==0) && !REVForcedRefresh){
+  if ((REVNumOfPartials==1) && !REVForcedRefresh){
     return;
   }
 
-  Gtk::HBox* hbox;
+  Gtk::VBox* hbox;
   attributesRefBuilder->get_widget(
     "REVMainHBox", hbox);
   hbox->remove ( *_remove);
@@ -7166,7 +7169,7 @@ FunctionGenerator::REVPartialAlignment* FunctionGenerator::REVInsertPartial (){
     REVPartialAlignments->appendNewNode(newSubAlignment);
   }
 
-  Gtk::HBox * hbox;
+  Gtk::VBox * hbox;
   attributesRefBuilder->get_widget(
     "REVMainHBox", hbox);
   hbox->pack_start(*newSubAlignment,Gtk::PACK_SHRINK);
@@ -7193,7 +7196,8 @@ FunctionGenerator::REVPartialAlignment* FunctionGenerator::REVInsertPartial (REV
   }
   _insertAfter->next = newSubAlignment;
 
-  Gtk::HBox * hbox;
+  //Gtk::HBox * hbox;
+  Gtk::VBox * hbox;
   attributesRefBuilder->get_widget(
     "REVMainHBox", hbox);
   hbox->pack_start(*newSubAlignment,Gtk::PACK_SHRINK);
@@ -7216,15 +7220,19 @@ void FunctionGenerator::REVApplyByRadioButtonClicked(){
   if (radiobutton->get_active()){ //applied by sound
     REVApplyFlag = 0;
     // First partial: change to be the sound
-    if (curr!=NULL){
-      curr->setLabel("Sound");
-      curr = curr->next;
+    // if (curr!=NULL){
+    //   curr->setLabel("Sound");
+    //   curr = curr->next;
+    // }
+    FunctionGenerator* parent = curr->parent;
+    while (curr->next != NULL){ //each partial
+      curr->entryEditSwitch(ON);
+      REVPartialAlignment* next_curr = curr->next;
+      parent->REVRemovePartial(curr);
+      curr = next_curr;
     }
+    curr->setLabel("Sound");
 
-    while (curr != NULL){ //each partial
-      curr->entryEditSwitch(OFF);
-      curr = curr->next;
-    }
   }
   else {//applied by partial
     REVApplyFlag = 1;
@@ -7619,7 +7627,7 @@ void FunctionGenerator::REVPartialAlignment::SimpleEntryFunButtonClicked(){
   }
 
   FunctionGenerator* generator =
-    new FunctionGenerator(functionReturnENV,entry->get_text());
+    new FunctionGenerator(functionReturnFloat,entry->get_text());
   generator->run();
 
   if (generator->getResultString() !=""){
@@ -7786,7 +7794,7 @@ void FunctionGenerator::REVPartialAlignment::removePartialButtonClicked(){
 // ZIYUAN CHEN, July 2023 - For inserting a new partial in the middle
 void FunctionGenerator::REVPartialAlignment::refreshPartialNumbersAndLayout(){
 
-  Gtk::HBox* hbox;
+  Gtk::VBox* hbox;
   parent->attributesRefBuilder->get_widget("REVMainHBox", hbox);
 
   REVPartialAlignment* current = parent->REVPartialAlignments;

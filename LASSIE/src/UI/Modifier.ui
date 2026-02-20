@@ -190,69 +190,106 @@
     <child>
       <object class="GtkHBox" id="hboxdetune">
         <property name="visible">True</property>
-       <child>
-          <object class="GtkLabel" id="detunespread">
-            <property name="visible">True</property>
-            <property name="label" translatable="yes">Detune Spread</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="padding">5</property>
-            <property name="position">10</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkEntry" id="SpreadEntry">
-             <property name="visible">True</property>
-           <property name="can_focus">True</property>
-            <property name="invisible_char">●</property>
-          </object>
-          <packing>
-   	   <property name="position">12</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkLabel" id="detunedirection">
-            <property name="visible">True</property>
-            <property name="label" translatable="yes">Detune Direction</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="padding">5</property>
-            <property name="position">14</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkEntry" id="DirectionEntry">
-            <property name="visible">True</property>
-            <property name="can_focus">True</property>
-            <property name="invisible_char">●</property>
-       </object>
-          <packing>
-            <property name="position">16</property>
-          </packing>
-        </child>
           <child>
-          <object class="GtkLabel" id="detunevelocity">
-            <property name="visible">True</property>
-            <property name="label" translatable="yes">Detune Velocity</property>
+              <object class="GtkLabel" id="detunespread">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">Detune Spread</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="padding">5</property>
+                <property name="position">10</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkEntry" id="SpreadEntry">
+                <property name="visible">True</property>
+              <property name="can_focus">True</property>
+                <property name="invisible_char">●</property>
+              </object>
+              <packing>
+          <property name="position">12</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="SpreadButton">
+                <property name="label" translatable="yes">Fn.</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="position">13</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="detunedirection">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">Detune Direction</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="padding">5</property>
+                <property name="position">14</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkEntry" id="DirectionEntry">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="invisible_char">●</property>
           </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="padding">5</property>
-            <property name="position">17</property>
-          </packing>
-        </child>
-          <child>
-          <object class="GtkEntry" id="VelocityEntry">
-             <property name="visible">True</property>
-           <property name="can_focus">True</property>
-            <property name="invisible_char">●</property>
-          </object>
-          <packing>
-   	   <property name="position">18</property>
-          </packing>
-        </child>
+              <packing>
+                <property name="position">16</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="DirectionButton">
+                <property name="label" translatable="yes">Fn.</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="position">17</property>
+              </packing>
+            </child>
+              <child>
+              <object class="GtkLabel" id="detunevelocity">
+                <property name="visible">True</property>
+                <property name="label" translatable="yes">Detune Velocity</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="padding">5</property>
+                <property name="position">18</property>
+              </packing>
+            </child>
+              <child>
+              <object class="GtkEntry" id="VelocityEntry">
+                <property name="visible">True</property>
+              <property name="can_focus">True</property>
+                <property name="invisible_char">●</property>
+              </object>
+              <packing>
+          <property name="position">19</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="VelocityButton">
+                <property name="label" translatable="yes">Fn.</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="position">20</property>
+              </packing>
+            </child>
+        <!-- <child> -->
       </object>
     </child>
     <child>

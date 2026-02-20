@@ -3915,9 +3915,9 @@ void BottomEventModifierAlignment::grayOutModifierFields(ModifierType type) {
       attributesRefBuilder->get_widget("partialResultStringEntry", entry);
       if (applyType == "SOUND") {
         entry->set_sensitive(false);
-	entry->set_text("");
+	      entry->set_text("");
       } else if (applyType == "PARTIAL") {  //If partials, only allow partialResultStringEntry to be modified
-        entry->set_sensitive(type!=modifierDetune); //if type is detune prevent all inputs since it's invalid
+        //entry->set_sensitive(type!=modifierDetune); //if type is detune prevent all inputs since it's invalid
 
         attributesRefBuilder->get_widget("probablityEnvelopeEntry", entry);
         entry->set_sensitive(false);
@@ -3948,7 +3948,7 @@ void BottomEventModifierAlignment::grayOutModifierFields(ModifierType type) {
         entry->set_text("");
 
         return;
-      }
+      } 
     }
   }
 
@@ -4242,6 +4242,18 @@ BottomEventModifierAlignment::BottomEventModifierAlignment(
   attributesRefBuilder->get_widget("removeModifierButton", button);
 
   button->signal_clicked().connect(sigc::mem_fun(*this, & BottomEventModifierAlignment::removeModifierButtonClicked));
+
+    attributesRefBuilder->get_widget(
+    "SpreadButton", button);
+  button->signal_clicked().connect(sigc::mem_fun(*this, & BottomEventModifierAlignment::detuneSpreadButtonClicked));
+
+    attributesRefBuilder->get_widget(
+    "DirectionButton", button);
+  button->signal_clicked().connect(sigc::mem_fun(*this, & BottomEventModifierAlignment::detuneDirectionButtonClicked));
+
+    attributesRefBuilder->get_widget(
+    "VelocityButton", button);
+  button->signal_clicked().connect(sigc::mem_fun(*this, & BottomEventModifierAlignment::detuneVelocityButtonClicked));
 
 
     attributesRefBuilder->get_widget(
@@ -4937,8 +4949,52 @@ void EventAttributesViewController::BSContinuumButtonClicked(){
 }
 
 
+void BottomEventModifierAlignment::detuneSpreadButtonClicked(){
+  Gtk::Entry* entry;
+  attributesRefBuilder->get_widget(
+    "SpreadEntry", entry);
+  if (entry->get_sensitive()) {
+    FunctionGenerator* generator =
+    new FunctionGenerator(functionReturnFloat,entry->get_text());
+    int result = generator->run();
+    if (generator->getResultString() !=""&& result ==0){
+        entry->set_text(generator->getResultString());
+      }
+    delete generator;
+  }
+}
+void BottomEventModifierAlignment::detuneDirectionButtonClicked(){
+  Gtk::Entry* entry;
+  attributesRefBuilder->get_widget(
+    "DirectionEntry", entry);
+  if (entry->get_sensitive()) {
+    FunctionGenerator* generator =
+    new FunctionGenerator(functionReturnFloat,entry->get_text());
+    int result = generator->run();
+    if (generator->getResultString() !=""&& result ==0){
+        entry->set_text(generator->getResultString());
+      }
+    delete generator;
+  }
 
 
+}
+void BottomEventModifierAlignment::detuneVelocityButtonClicked(){
+  Gtk::Entry* entry;
+  attributesRefBuilder->get_widget(
+    "VelocityEntry", entry);
+  if (entry->get_sensitive()) {
+    FunctionGenerator* generator =
+    new FunctionGenerator(functionReturnFloat,entry->get_text());
+    int result = generator->run();
+    if (generator->getResultString() !=""&& result ==0){
+        entry->set_text(generator->getResultString());
+      }
+    delete generator;
+  }
+
+
+}
 void BottomEventModifierAlignment::probablityEnvelopeButtonClicked(){
   Gtk::Entry* entry;
   attributesRefBuilder->get_widget(

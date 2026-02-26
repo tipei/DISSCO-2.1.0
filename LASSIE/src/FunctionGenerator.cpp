@@ -6823,7 +6823,6 @@ void FunctionGenerator::SPAApplyByRadioButtonClicked(){
         partial = next_partial;
       }
       partial->setLabel("Envelope");
-      partial->setText("");
       temp = temp->next;
     }
 

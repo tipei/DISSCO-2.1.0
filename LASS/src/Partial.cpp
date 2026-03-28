@@ -53,6 +53,8 @@ Partial::Partial()
     setParam(AMPTRANS_WIDTH, 1103);
     setParam(FREQTRANS_WIDTH, 1103);
 
+    setParam(CARRIER_PHASE, 0.0); // set initial phase default to 0
+
     reverbObj = NULL;
     spatializer_ = new Spatializer();
 }
@@ -89,7 +91,7 @@ MultiTrack* Partial::render(int numChannels,
     getParam(TREMOLO_RATE).setDuration(duration);
     getParam(VIBRATO_AMP).setDuration(duration);
     getParam(VIBRATO_RATE).setDuration(duration);
-    getParam(PHASE).setDuration(duration);
+    getParam(CARRIER_PHASE).setDuration(duration);
     getParam(LOUDNESS_SCALAR).setDuration(duration);
     //getParam(FREQUENCY_DEVIATION).setDuration(duration);
     //getParam(GLISSANDO_ENV).setDuration(duration);
@@ -98,6 +100,11 @@ MultiTrack* Partial::render(int numChannels,
     getParam(AMPTRANS_WIDTH).setDuration(duration);
     getParam(FREQTRANS_WIDTH).setDuration(duration);
 
+    getParam(CARRIER_PHASE).setDuration(duration);
+    getParam(PHASE_AMP_ENV).setDuration(duration);
+    getParam(PHASE_RATE_ENV).setDuration(duration);
+
+
     // tell each dynamic variable what the SAMPLING_RATE will be:
     getParam(FREQUENCY).setSamplingRate(samplingRate);
     getParam(WAVE_SHAPE).setSamplingRate(samplingRate);
@@ -105,14 +112,19 @@ MultiTrack* Partial::render(int numChannels,
     getParam(TREMOLO_RATE).setSamplingRate(samplingRate);
     getParam(VIBRATO_AMP).setSamplingRate(samplingRate);
     getParam(VIBRATO_RATE).setSamplingRate(samplingRate);
-    getParam(PHASE).setSamplingRate(samplingRate);
+    getParam(CARRIER_PHASE).setSamplingRate(samplingRate);
     getParam(LOUDNESS_SCALAR).setSamplingRate(samplingRate);
     //getParam(FREQUENCY_DEVIATION).setSamplingRate(samplingRate);
     //getParam(GLISSANDO_ENV).setSamplingRate(samplingRate);
     getParam(FREQ_ENV).setSamplingRate(samplingRate);
-      getParam(DETUNING_ENV).setSamplingRate(samplingRate);
+    getParam(DETUNING_ENV).setSamplingRate(samplingRate);
     getParam(AMPTRANS_WIDTH).setSamplingRate(samplingRate);
     getParam(FREQTRANS_WIDTH).setSamplingRate(samplingRate);
+
+    getParam(CARRIER_PHASE).setSamplingRate(samplingRate);
+    getParam(PHASE_AMP_ENV).setSamplingRate(samplingRate);
+    getParam(PHASE_RATE_ENV).setSamplingRate(samplingRate);
+
 
     // randomize the frequency deviation:
     //
@@ -138,18 +150,28 @@ MultiTrack* Partial::render(int numChannels,
 
     //DynamicVariable* gliss_env = getParam(GLISSANDO_ENV).clone();
     DynamicVariable* freq_env = getParam(FREQ_ENV).clone();
-      DynamicVariable* detuning_env = getParam(DETUNING_ENV).clone();
+    DynamicVariable* detuning_env = getParam(DETUNING_ENV).clone();
     DynamicVariable* amptrans_amp_env = getParam(AMPTRANS_AMP_ENV).clone();
     DynamicVariable* amptrans_rate_env = getParam(AMPTRANS_RATE_ENV).clone();
     DynamicVariable* freqtrans_amp_env = getParam(FREQTRANS_AMP_ENV).clone();
     DynamicVariable* freqtrans_rate_env = getParam(FREQTRANS_RATE_ENV).clone();
+
+    DynamicVariable* carrier_phase_env = getParam(CARRIER_PHASE).clone();
+    DynamicVariable* phase_amp_env = getParam(PHASE_AMP_ENV).clone();
+    DynamicVariable* phase_rate_env = getParam(PHASE_RATE_ENV).clone();
+
+
     //gliss_env->setDuration(duration);
     freq_env->setDuration(duration);
-      detuning_env->setDuration(duration);
+    detuning_env->setDuration(duration);
     amptrans_amp_env->setDuration(duration);
     amptrans_rate_env->setDuration(duration);
     freqtrans_amp_env->setDuration(duration);
     freqtrans_rate_env->setDuration(duration);
+
+    carrier_phase_env->setDuration(duration);
+    phase_amp_env->setDuration(duration);
+    phase_rate_env->setDuration(duration);
 
     // grab iterators for each DynamicVariable:
     typedef Iterator<m_value_type> ValIter;
@@ -163,7 +185,7 @@ MultiTrack* Partial::render(int numChannels,
     ValIter tremolo_rate_it = getParam(TREMOLO_RATE).valueIterator();
     ValIter vibrato_amp_it = getParam(VIBRATO_AMP).valueIterator();
     ValIter vibrato_rate_it = getParam(VIBRATO_RATE).valueIterator();
-    ValIter phase_it = getParam(PHASE).valueIterator();
+    ValIter phase_it = getParam(CARRIER_PHASE).valueIterator();
     ValIter loudnes_scalar_it = getParam(LOUDNESS_SCALAR).valueIterator();
     ValIter amptrans_width_it = getParam(AMPTRANS_WIDTH).valueIterator();
     ValIter freqtrans_width_it = getParam(FREQTRANS_WIDTH).valueIterator();
@@ -176,15 +198,21 @@ MultiTrack* Partial::render(int numChannels,
     ValIter freqtrans_amp_it = freqtrans_amp_env->valueIterator();
     ValIter freqtrans_rate_it = freqtrans_rate_env->valueIterator();
 
+    ValIter phase_rate_it = phase_rate_env->valueIterator();
+    ValIter phase_amp_it = phase_amp_env->valueIterator();
+
+
     // Phase values start off at zero for now:
     m_value_type tremolo_phase = 0.0;
     m_value_type vibrato_phase = 0.0;
     m_value_type freq_phase = 0.0;
+    m_value_type phase_mod_phase = 0.0;  
 
     // values used in the loop:
     m_value_type tremolo;
     m_value_type amplitude;
     m_value_type vibrato;
+    m_value_type phase_mod;
     m_value_type frequency;
     m_value_type phase;
     m_value_type sample;
@@ -331,9 +359,13 @@ MultiTrack* Partial::render(int numChannels,
         // increment the frequency phase:
         freq_phase = pmod (freq_phase + (frequency / samplingRate));
 
+        // calculate the phase modulation 
+        phase_mod = phase_amp_it.next() * sin(2.0 * M_PI * phase_mod_phase);
+        phase_mod_phase = pmod( phase_mod_phase + (phase_rate_it.next() / samplingRate) );
+
         // calculate the actual phase, augmenting freq_phase with
-        // they dynamic variable phase (phase offset)
-        phase = freq_phase + phase_it.next();
+        // the dynamic variable phase (phase offset) and modulation
+        phase = freq_phase + phase_it.next() + phase_mod;
 
 
         // SAMPLE:
@@ -393,6 +425,8 @@ MultiTrack* Partial::render(int numChannels,
     delete freqtrans_amp_env;
     delete freqtrans_rate_env;
 
+    delete phase_amp_env;
+    delete phase_rate_env;
 
     return returnTrack;
 }
@@ -403,8 +437,7 @@ inline m_value_type Partial::pmod(m_value_type num)
     while (num > 1.0)
         num -= 1.0;
     return num;
-}
-
+}   
 
 //----------------------------------------------------------------------------//
 /* ZIYUAN CHEN, July 2023 */
@@ -482,7 +515,7 @@ void Partial::xml_print( ofstream& xmlOutput, list<Reverb*>& revObjs, list<Dynam
 	xmlOutput << "\t\t\t</vibrato_rate>" << endl;
 
 	xmlOutput << "\t\t\t<phase>" << endl;
-	getParam(PHASE).xml_print( xmlOutput, dynObjs );
+	getParam(CARRIER_PHASE).xml_print( xmlOutput, dynObjs );
 	xmlOutput << "\t\t\t</phase>" << endl;
 
 	//xmlOutput << "\t\t\t<frequency_deviation>" << endl;
@@ -559,7 +592,7 @@ void Partial::xml_read(XmlReader::xmltag* partialtag, DISSCO_HASHMAP<long, Rever
 		else if(strcmp(dvtag->name,"vibrato_rate") == 0)
 			auxLoadParam(VIBRATO_RATE,dvtag,dvHash);
 		else if(strcmp(dvtag->name,"phase") == 0)
-			auxLoadParam(PHASE,dvtag,dvHash);
+			auxLoadParam(CARRIER_PHASE,dvtag,dvHash);
 		//else if(strcmp(dvtag->name,"frequency_deviation") == 0)
 		//auxLoadParam(FREQUENCY_DEVIATION,dvtag,dvHash);
 		//else if(strcmp(dvtag->name,"glissando_env") == 0)

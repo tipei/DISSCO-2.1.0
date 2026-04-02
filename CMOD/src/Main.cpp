@@ -37,13 +37,17 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <time.h>
 #include "Note.h"
 #include "SignalHandlers.h"
-
+#include "../../LASS/src/MPIWrapper.h"
 			//added by Sever must be a more elegant way
 #include <iostream>
 #include <fstream>
 using namespace std;
 
-int main(int parameterCount, char **parameterList) {
+int main(int argc, char** argv) {
+#ifdef USE_MPI
+  dissco_mpi::ensureInitialized();
+#endif
+
   // Rubin Du 2024: Installed custom signal handler to print stack trace on segfault
   signal(SIGSEGV, segfaultHandler);
 
@@ -56,8 +60,8 @@ int main(int parameterCount, char **parameterList) {
 
   //Determine the project path.
   string path;
-  if(parameterCount >= 2)
-    path = parameterList[1];
+  if(argc >= 2)
+    path = argv[1];
   if(path == "--help" || path == "-help" || path == "help") {
     cout << "Usage: cmod          Runs CMOD in the current directory." << endl;
     cout << "       cmod <path>   Runs CMOD in the <path> directory." << endl;
@@ -84,8 +88,11 @@ int main(int parameterCount, char **parameterList) {
   }
 
   //Determine project sound file output.
-  PieceHelper::createSoundFilesDirectory(workingPath);
-  PieceHelper::createScoreFilesDirectory(workingPath);
+  if (dissco_mpi::isRoot()) {
+    PieceHelper::createSoundFilesDirectory(workingPath);
+    PieceHelper::createScoreFilesDirectory(workingPath);
+  }
+  dissco_mpi::barrier();
 
   //Create the piece!
   Piece* piece = new Piece(workingPath, projectName);

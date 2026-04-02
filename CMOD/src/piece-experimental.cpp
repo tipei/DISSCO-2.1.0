@@ -33,6 +33,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "Output.h"
 #include "Random.h"
 #include "Utilities.h"
+#include "../../LASS/src/MPIWrapper.h"
 #include <fstream>
 
 //----------------------------------------------------------------------------//
@@ -219,6 +220,12 @@ void Piece::Print() {
 
 
 Piece::Piece(string _workingPath, string _projectTitle){
+#ifdef USE_MPI
+  dissco_mpi::ensureInitialized();
+#endif
+  const bool mpiRoot = dissco_mpi::isRoot();
+  const bool mpiEnabled = dissco_mpi::size() > 1;
+
   path = _workingPath;
   projectName = _projectTitle;
   //Change working directory.
@@ -273,8 +280,13 @@ Piece::Piece(string _workingPath, string _projectTitle){
   cout << "Sample Size: "<< sampleSize << "\n";
   element = element->GNES();
   numThreads = stoi(XMLTC(element));
+  if (mpiEnabled && numThreads != 1 && mpiRoot) {
+    cout << "MPI partial rendering enabled; forcing local render threads to 1." << endl;
+  }
+  numThreads = dissco_mpi::localRenderThreads(numThreads);
   element = element->GNES();
   bool outputParticel = (XMLTC(element).compare("True")==0)?true:false;
+  bool localOutputParticel = outputParticel && mpiRoot;
 
   //check if seed exists
   string seed;
@@ -282,15 +294,19 @@ Piece::Piece(string _workingPath, string _projectTitle){
   if(element->getFirstChild()){
     seed = XMLTC(element);
   }
-  else{
+  else if (mpiRoot) {
     cout<<"Please key in the Random Seed:"<<endl;
     cin>>seed;
   }
+  dissco_mpi::broadcastString(seed);
 
   //Testing multiple runs on one seed
-  int numRuns;
-  cout<<"Please key in how many times you want to run (1-10):"<<endl;
-  cin>>numRuns;
+  int numRuns = 1;
+  if (mpiRoot) {
+    cout<<"Please key in how many times you want to run (1-10):"<<endl;
+    cin>>numRuns;
+  }
+  dissco_mpi::broadcastInt(numRuns);
 
   // Enforce numRuns bounds
   if (numRuns < 1) { numRuns = 1; }
@@ -307,7 +323,7 @@ Piece::Piece(string _workingPath, string _projectTitle){
       utilities = new Utilities(root,
                                 _workingPath,
                                 soundSynthesis,
-                                outputParticel,
+                                localOutputParticel,
                                 numThreads,
                                 numChannels,
                                 sampleRate,
@@ -360,14 +376,16 @@ Piece::Piece(string _workingPath, string _projectTitle){
       if (soundSynthesis){
         cout << "Piece::Piece: " << "soundSynthesis " << endl;
         MultiTrack* renderedScore = utilities->doneCMOD();
-        string soundFilename = getNextSoundFile();
+        if (mpiRoot) {
+          string soundFilename = getNextSoundFile();
 
-        //Write to file.
-        AuWriter::write(*renderedScore, soundFilename);
+          //Write to file.
+          AuWriter::write(*renderedScore, soundFilename);
+        }
 
         delete renderedScore;
       }
-    if (scorePrinting) {
+    if (scorePrinting && mpiRoot) {
       cout << "Piece::Piece: " << "Score output " << endl;
 
       /* for score file */
@@ -402,19 +420,21 @@ Piece::Piece(string _workingPath, string _projectTitle){
 
     }
 
-    if (outputParticel){
+    if (localOutputParticel){
       //Finish particel output and free up the Output class members.
       Output::endSubLevel();
       Output::free();
     }
 
-    cout << endl;
-    cout << "-----------------------------------------------------------" <<
-      endl;
-    cout << "Build complete." << endl;
-    cout << "-----------------------------------------------------------" <<
-      endl << endl;
-    cout.flush();
+    if (mpiRoot) {
+      cout << endl;
+      cout << "-----------------------------------------------------------" <<
+        endl;
+      cout << "Build complete." << endl;
+      cout << "-----------------------------------------------------------" <<
+        endl << endl;
+      cout.flush();
+    }
 
 
     //clean up

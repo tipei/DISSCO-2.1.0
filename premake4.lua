@@ -54,6 +54,9 @@ HAVE_CUDA  = (CUDA_HOME ~= nil) and (NVIDIA_SMI ~= nil)  --Detects if CUDA is av
 newoption({trigger="examples",
   description="Creates makefiles for LASS examples"})
 
+newoption({trigger="mpi",
+  description="Enable MPI-based partial rendering in LASS Sound::render"})
+
 DebugFlags = {"Symbols", "NoPCH", "NoManifest"}
 ReleaseFlags = {"Optimize"}
 
@@ -67,13 +70,27 @@ project "lass"
   flags {"StaticRuntime"}
   files {"LASS/src/*.cpp", "LASS/src/*.h"}
   excludes {"LASS/src/test/**"}
-    includedirs {"/usr/local/include"}
+    -- includedirs {"/usr/local/include"}
+  includedirs {
+    "/usr/local/include",
+    "/u/sx24/local/include"
+  }
+  libdirs {
+    "/usr/local/lib",
+    "/usr/lib64",
+    "/u/sx24/local/lib",
+    "/u/sx24/local/lib64"
+
+  }
   if(HAVE_CUDA) then 
       includedirs {CUDA_HOME .. "/include"}
     end
   kind "StaticLib"
   targetdir "lib"
   buildoptions {"-Wno-deprecated", "-Wall", "-Wextra", "-std=c++11"}
+  if _OPTIONS["mpi"] then
+    defines { "USE_MPI" }
+  end
   if(HAVE_CUDA) then 
     defines { "HAVE_CUDA" }
     configuration "Debug" 
@@ -138,9 +155,23 @@ project "lcmod"
   flags {"StaticRuntime"}
   files {"CMOD/src/**.cpp", "CMOD/src/**.h"}
   excludes {"CMOD/src/Main.*", "CMOD/src/test/**"}
+  includedirs {
+    "/usr/local/include",
+    "/u/sx24/local/include"
+  }
+  libdirs {
+    "lib",
+    "/usr/local/lib",
+    "/usr/lib64",
+    "/u/sx24/local/lib",
+    "/u/sx24/local/lib64"
+  }
   kind "StaticLib"
   targetdir "lib"
   buildoptions {"-Wno-deprecated", "-std=c++11"}
+  if _OPTIONS["mpi"] then
+    defines { "USE_MPI" }
+  end
   configuration "Debug" 
     flags(DebugFlags)
     buildoptions {"-g"}
@@ -152,7 +183,18 @@ project "cmod"
   flags {"StaticRuntime"}
   files {"CMOD/src/Main.*"}
   kind "ConsoleApp"
-  libdirs { "lib", "/usr/local/lib"}
+  includedirs {
+    "/usr/local/include",
+    "/u/sx24/local/include"
+  }
+  libdirs {
+    "lib",
+    "/usr/local/lib",
+    "/usr/lib64",
+    "/u/sx24/local/lib",
+    "/u/sx24/local/lib64"
+  }
+  -- libdirs { "lib", "/usr/local/lib"}
   links   { "lcmod", "lass", "parser","muparser", "pthread", "sndfile" }
   if (HAVE_CUDA) then 
     libdirs { "/usr/local/cuda/lib64" }
@@ -160,6 +202,9 @@ project "cmod"
   end
   linkoptions{"-lxerces-c", "-rdynamic"}
   buildoptions {"-Wno-deprecated", "-std=c++11"}
+  if _OPTIONS["mpi"] then
+    defines { "USE_MPI" }
+  end
   configuration "Debug" 
     flags(DebugFlags)
     buildoptions {"-g"}
@@ -173,7 +218,7 @@ project "UpgradeProjectFormat"
   flags {"StaticRuntime"}
   files {"LASSIE/src/UpgradeProjectFormat.*"}
   kind "ConsoleApp"
-  libdirs {"lib", "/usr/local/lib"}
+  libdirs {"lib", "/usr/local/lib", "/usr/lib64", "/u/sx24/local/lib", "/u/sx24/local/lib64"}
   links {"lcmod", "lass", "parser","muparser", "pthread", "sndfile" }
   if( HAVE_CUDA ) then 
     libdirs { CUDA_HOME .. "/lib64", CUDA_HOME .. "/targets/x86_64-linux/lib"}
@@ -181,6 +226,9 @@ project "UpgradeProjectFormat"
   end
   linkoptions{"-lxerces-c"}
   buildoptions {"-Wno-deprecated", "-Wno-register", "-std=c++11"}
+  if _OPTIONS["mpi"] then
+    defines { "USE_MPI" }
+  end
   configuration "Debug" 
     flags(DebugFlags)
     buildoptions {"-g"}
@@ -197,8 +245,11 @@ project "lassie"
   buildoptions {"`pkg-config --cflags gtkmm-2.4`",
     "-Wno-deprecated-declarations", "-Wno-deprecated", "-std=c++11"}
   linkoptions {"`pkg-config --libs --cflags gtkmm-2.4`", "-Wno-deprecated", "-lxerces-c"}
-  libdirs { "/usr/local/lib" }
+  libdirs { "/usr/local/lib", "/usr/lib64", "/u/sx24/local/lib", "/u/sx24/local/lib64" }
   links   { "lcmod", "lass", "parser", "pthread", "sndfile" }
+  if _OPTIONS["mpi"] then
+    defines { "USE_MPI" }
+  end
   if( HAVE_CUDA ) then 
     libdirs { CUDA_HOME .. "/lib64"}
     links {"cudart"}

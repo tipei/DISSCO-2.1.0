@@ -51,6 +51,13 @@ int main(int argc, char** argv) {
   // Rubin Du 2024: Installed custom signal handler to print stack trace on segfault
   signal(SIGSEGV, segfaultHandler);
 
+  #ifdef USE_MPI
+  // silence output for non-root processes
+  if (!dissco_mpi::isRoot()) {
+    std::cout.setstate(std::ios_base::failbit);
+  }
+  #endif
+
   time_t startTime;
   time(&startTime);
 
@@ -107,6 +114,14 @@ int main(int argc, char** argv) {
   int min = (seconds % 3600) / 60;
   int sec = seconds % 60;
   printf("Computation Time: %02d:%02d:%02d.\n", hr, min, sec);
+
+
+  #ifdef USE_MPI
+  // restore normal output for all processes 
+  if (!dissco_mpi::isRoot()) {
+    std::cout.setstate(std::ios_base::goodbit);
+  }
+  #endif
 
 
   return 0;

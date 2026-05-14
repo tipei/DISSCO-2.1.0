@@ -31,6 +31,103 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "Score.h"
 #include "Types.h"
+#include "MPIWrapper.h"
+
+#include <cmath>
+#include <limits>
+#include <sstream>
+
+//----------------------------------------------------------------------------//
+
+#ifdef USE_MPI
+namespace {
+
+/**
+ * Mixes one value into the debug signature used to check replicated CMOD
+ * sound generation across MPI ranks.
+ */
+unsigned long long mixSoundSignature(unsigned long long seed,
+                                     unsigned long long value)
+{
+  seed ^= value + 0x9e3779b97f4a7c15ULL + (seed << 6) + (seed >> 2);
+  return seed;
+}
+
+/**
+ * Quantizes floating-point sound properties before they are folded into the
+ * MPI consistency signature. This keeps tiny numeric noise from tripping the
+ * debug-only divergence check.
+ */
+unsigned long long quantizeForSignature(float value)
+{
+  const long long scaled =
+      static_cast<long long>(std::llround(value * 1000000.0f));
+  return static_cast<unsigned long long>(scaled);
+}
+
+/**
+ * Packs a MultiTrack into contiguous per-channel wave and amplitude buffers so
+ * the entire locally mixed score can be reduced with MPI.
+ */
+void flattenScoreBuffers(MultiTrack* score,
+                         int numChannels,
+                         m_sample_count_type sampleCount,
+                         std::vector<m_sample_type>& waveBuffer,
+                         std::vector<m_sample_type>& ampBuffer)
+{
+  const std::size_t samplesPerChannel =
+      static_cast<std::size_t>(sampleCount);
+
+  for (int channel = 0; channel < numChannels; ++channel)
+  {
+    Track* track = score->get(channel);
+    SoundSample& wave = track->getWave();
+    SoundSample& amp = track->getAmp();
+    const std::size_t base =
+        static_cast<std::size_t>(channel) * samplesPerChannel;
+
+    for (m_sample_count_type sample = 0; sample < sampleCount; ++sample)
+    {
+      waveBuffer[base + sample] = wave[sample];
+      ampBuffer[base + sample] = amp[sample];
+    }
+  }
+}
+
+/**
+ * Reconstructs a MultiTrack from the reduced score buffers received on rank 0.
+ */
+MultiTrack* rebuildScoreFromBuffers(const std::vector<m_sample_type>& waveBuffer,
+                                    const std::vector<m_sample_type>& ampBuffer,
+                                    int numChannels,
+                                    m_sample_count_type sampleCount,
+                                    m_rate_type samplingRate)
+{
+  MultiTrack* reducedScore =
+      new MultiTrack(numChannels, sampleCount, samplingRate);
+  const std::size_t samplesPerChannel =
+      static_cast<std::size_t>(sampleCount);
+
+  for (int channel = 0; channel < numChannels; ++channel)
+  {
+    Track* track = reducedScore->get(channel);
+    SoundSample& wave = track->getWave();
+    SoundSample& amp = track->getAmp();
+    const std::size_t base =
+        static_cast<std::size_t>(channel) * samplesPerChannel;
+
+    for (m_sample_count_type sample = 0; sample < sampleCount; ++sample)
+    {
+      wave[sample] = waveBuffer[base + sample];
+      amp[sample] = ampBuffer[base + sample];
+    }
+  }
+
+  return reducedScore;
+}
+
+}  // namespace
+#endif
 
 //----------------------------------------------------------------------------//
 
@@ -60,6 +157,18 @@ struct ThreadEntry{
 //------------------------------------------------------------------------------
 void Score::add(Sound* _sound){
 
+  const long soundOrdinal = nextSoundOrdinal++;
+  // All ranks still build the same CMOD sound stream. Validate that shared
+  // assumption before we assign MPI ownership for this sound ordinal.
+  validateSoundConsistency(soundOrdinal, _sound);
+
+  // In MPI per-sound mode only the owning rank keeps this sound. Non-owners
+  // drop it here so Sound::render() only runs once across all ranks.
+  if (!ownsSound(soundOrdinal)) {
+    delete _sound;
+    return;
+  }
+
   // To prevent unnecessary memory use, this function is temporarily blocked
   // when there are too many sounds objects waiting to be rendered.
   // 200 is just an arbitrary number.
@@ -83,9 +192,6 @@ void Score::add(Sound* _sound){
     scoreEndTime = soundEndTime;
     //cout<<"Score End Time Updated: "<< scoreEndTime << "seconds"<<endl;
   }
-    // figure in the reverb die-out period
-  if(reverbObj != NULL)
-  scoreEndTime += reverbObj->getDecay();
 
   // Unlock the sounds vector
   pthread_mutex_unlock( &mutexSoundVector );
@@ -148,12 +254,13 @@ Score::Score(int _numThreads, int _numChannels, int _samplingRate )
     : cmm_(NONE),
     soundsRendered(0),
     soundObjectsCreated(0),
+    nextSoundOrdinal(0),
     doneGettingSoundObjects(false),
     workerThreadsAllJoined(false),
     numChannels(_numChannels),
     samplingRate(_samplingRate)
 {
-  scoreEndTime = 1; //start with a small number
+  scoreEndTime = 0;
   scoreMultiTrackLength = scoreEndTime;
   m_sample_count_type newNumSamples =
         (m_sample_count_type) (scoreMultiTrackLength * float(samplingRate));
@@ -268,6 +375,15 @@ MultiTrack* Score::joinThreadsAndMix(){
   sem_destroy(&semEmptySlotsRendered);
   sem_destroy(&semFullSlotsRendered);
 
+#ifdef USE_MPI
+  if (dissco_mpi::size() > 1)
+  {
+    // Each rank has already mixed the sounds it owns into a local score.
+    // Reduce those local score buffers to rank 0 before score-level effects.
+    return reduceScoreToRoot();
+  }
+#endif
+
   // do the reverb
   if(reverbObj != NULL)
   {
@@ -289,8 +405,14 @@ MultiTrack* Score::joinThreadsAndMix(){
 
 void Score::checkScoreMultiTrackLength(){
 
-  if ( scoreEndTime > scoreMultiTrackLength ){
-      scoreMultiTrackLength = scoreEndTime;
+  resizeScoreMultiTrack(scoreEndTime);
+}
+
+//----------------------------------------------------------------------------//
+void Score::resizeScoreMultiTrack(m_time_type newLength){
+
+  if ( newLength > scoreMultiTrackLength ){
+      scoreMultiTrackLength = newLength;
       m_sample_count_type newNumSamples =
         (m_sample_count_type) (scoreMultiTrackLength * float(samplingRate));
       MultiTrack* newScoreMultiTrack = new MultiTrack
@@ -301,9 +423,215 @@ void Score::checkScoreMultiTrackLength(){
       scoreMultiTrack = newScoreMultiTrack;
 
       //pthread_mutex_unlock( &mutexVectorRenderedSound );
-      cout<<"Get a longer score with length = " << scoreEndTime << " seconds."<<endl;
+      cout<<"Get a longer score with length = " << scoreMultiTrackLength << " seconds."<<endl;
 
   }
+}
+
+
+//----------------------------------------------------------------------------//
+bool Score::ownsSound(long soundOrdinal) const
+{
+#ifdef USE_MPI
+  if (dissco_mpi::size() > 1)
+  {
+    // Round-robin ownership keeps the policy deterministic without adding a
+    // centralized scheduler while CMOD is still replicated on every rank.
+    return (soundOrdinal % dissco_mpi::size()) == dissco_mpi::rank();
+  }
+#endif
+  (void) soundOrdinal;
+  return true;
+}
+
+
+//----------------------------------------------------------------------------//
+void Score::validateSoundConsistency(long soundOrdinal, Sound* sound) const
+{
+#if defined(USE_MPI) && !defined(NDEBUG)
+  if (dissco_mpi::size() <= 1)
+  {
+    return;
+  }
+
+  unsigned long long signature = 1469598103934665603ULL;
+  signature = mixSoundSignature(signature,
+                                static_cast<unsigned long long>(soundOrdinal));
+  signature = mixSoundSignature(signature,
+                                quantizeForSignature(sound->getParam(START_TIME)));
+  signature = mixSoundSignature(signature,
+                                quantizeForSignature(sound->getParam(DURATION)));
+  signature = mixSoundSignature(signature,
+                                static_cast<unsigned long long>(sound->size()));
+  signature = mixSoundSignature(signature,
+                                quantizeForSignature(sound->getTotalDuration()));
+
+  unsigned long long minSignature = signature;
+  unsigned long long maxSignature = signature;
+  // All ranks should see the same sound at a given ordinal before ownership
+  // filtering. If they do not, the final MPI reduction would be meaningless.
+  MPI_Allreduce(&signature,
+                &minSignature,
+                1,
+                MPI_UNSIGNED_LONG_LONG,
+                MPI_MIN,
+                MPI_COMM_WORLD);
+  MPI_Allreduce(&signature,
+                &maxSignature,
+                1,
+                MPI_UNSIGNED_LONG_LONG,
+                MPI_MAX,
+                MPI_COMM_WORLD);
+
+  if (minSignature != maxSignature)
+  {
+    if (dissco_mpi::isRoot())
+    {
+      std::cerr << "MPI per-sound ownership detected divergent sound generation at ordinal "
+                << soundOrdinal << "." << std::endl;
+    }
+    MPI_Abort(MPI_COMM_WORLD, 1);
+  }
+#else
+  (void) soundOrdinal;
+  (void) sound;
+#endif
+}
+
+
+//----------------------------------------------------------------------------//
+MultiTrack* Score::reduceScoreToRoot()
+{
+#ifdef USE_MPI
+  float localScoreLength = scoreEndTime;
+  float globalScoreLength = 0.0f;
+  // Local score lengths differ because each rank owns a different subset of
+  // sounds. Agree on the global maximum before flattening the buffers.
+  MPI_Allreduce(&localScoreLength,
+                &globalScoreLength,
+                1,
+                MPI_FLOAT,
+                MPI_MAX,
+                MPI_COMM_WORLD);
+
+  scoreEndTime = globalScoreLength;
+  resizeScoreMultiTrack(scoreEndTime);
+
+  const int localOwnedSoundCount = soundObjectsCreated;
+  std::vector<int> ownedSoundCounts;
+  if (dissco_mpi::isRoot())
+  {
+    ownedSoundCounts.resize(dissco_mpi::size(), 0);
+  }
+
+  MPI_Gather(&localOwnedSoundCount,
+             1,
+             MPI_INT,
+             dissco_mpi::isRoot() ? ownedSoundCounts.data() : NULL,
+             1,
+             MPI_INT,
+             0,
+             MPI_COMM_WORLD);
+
+  if (dissco_mpi::isRoot())
+  {
+    std::ostringstream ownership;
+    ownership << "MPI per-sound ownership:";
+    for (int rank = 0; rank < dissco_mpi::size(); ++rank)
+    {
+      ownership << " rank " << rank << "=" << ownedSoundCounts[rank];
+    }
+    ownership << " (total sounds=" << nextSoundOrdinal << ")";
+    std::cout << ownership.str() << std::endl;
+  }
+
+  m_sample_count_type sampleCount = 0;
+  if (numChannels > 0 && scoreMultiTrack->size() > 0)
+  {
+    sampleCount = scoreMultiTrack->get(0)->getWave().getSampleCount();
+  }
+
+  const std::size_t totalSamples =
+      static_cast<std::size_t>(numChannels) * static_cast<std::size_t>(sampleCount);
+
+  if (totalSamples > static_cast<std::size_t>(std::numeric_limits<int>::max()))
+  {
+    if (dissco_mpi::isRoot())
+    {
+      std::cerr << "MPI score reduction buffer exceeds MPI count limits." << std::endl;
+    }
+    MPI_Abort(MPI_COMM_WORLD, 1);
+  }
+
+  std::vector<m_sample_type> localWaveBuffer(totalSamples, 0.0f);
+  std::vector<m_sample_type> localAmpBuffer(totalSamples, 0.0f);
+  // By the time we reach this point, each rank has a complete local mix of the
+  // sounds it owns. Flatten that local score so MPI can sum the contributions.
+  flattenScoreBuffers(scoreMultiTrack,
+                      numChannels,
+                      sampleCount,
+                      localWaveBuffer,
+                      localAmpBuffer);
+
+  std::vector<m_sample_type> reducedWaveBuffer;
+  std::vector<m_sample_type> reducedAmpBuffer;
+  if (dissco_mpi::isRoot())
+  {
+    reducedWaveBuffer.resize(totalSamples, 0.0f);
+    reducedAmpBuffer.resize(totalSamples, 0.0f);
+  }
+
+  if (totalSamples > 0)
+  {
+    // Wave and amp are reduced separately because Track keeps both buffers and
+    // later post-processing still expects a full MultiTrack representation.
+    MPI_Reduce(localWaveBuffer.data(),
+               dissco_mpi::isRoot() ? reducedWaveBuffer.data() : NULL,
+               static_cast<int>(totalSamples),
+               MPI_FLOAT,
+               MPI_SUM,
+               0,
+               MPI_COMM_WORLD);
+    MPI_Reduce(localAmpBuffer.data(),
+               dissco_mpi::isRoot() ? reducedAmpBuffer.data() : NULL,
+               static_cast<int>(totalSamples),
+               MPI_FLOAT,
+               MPI_SUM,
+               0,
+               MPI_COMM_WORLD);
+  }
+
+  if (!dissco_mpi::isRoot())
+  {
+    // Non-root ranks are finished once their local score has been contributed
+    // to the reduction. Rank 0 alone owns the final reduced score object.
+    delete scoreMultiTrack;
+    scoreMultiTrack = NULL;
+    return NULL;
+  }
+
+  delete scoreMultiTrack;
+  // Rank 0 reconstructs the final score before applying score-level effects
+  // that cannot be performed independently on each rank.
+  scoreMultiTrack = rebuildScoreFromBuffers(reducedWaveBuffer,
+                                            reducedAmpBuffer,
+                                            numChannels,
+                                            sampleCount,
+                                            samplingRate);
+#endif
+
+  // do the reverb on the final reduced score only.
+  if(reverbObj != NULL)
+  {
+    cout << "Applying reverb to the score..." << endl;
+    MultiTrack *tmp = & reverbObj->do_reverb_MultiTrack(*scoreMultiTrack);
+    delete scoreMultiTrack;
+    scoreMultiTrack = tmp;
+  }
+
+  cout << "Managing Clipping for the score..." << endl;
+  manageClipping(scoreMultiTrack, cmm_);
+  return scoreMultiTrack;
 }
 
 

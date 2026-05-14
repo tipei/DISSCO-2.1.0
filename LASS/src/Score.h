@@ -184,10 +184,18 @@ public:
 	  **/
 	  MultiTrack* doneAddingSounds();
 	  
-	  /**
-	  * Increase the length of MultiTrack* score to fit sounds
-	  **/
+    /**
+    * Increase the length of MultiTrack* score to fit sounds
+    **/
 	  void checkScoreMultiTrackLength(); 
+
+    /**
+    * Resize the local score buffer to a specific duration.
+    * In MPI mode, every rank uses this after agreeing on a global score length
+    * so the flattened buffers all have the same shape for reduction.
+    * \param newLength The target score duration in seconds.
+    **/
+    void resizeScoreMultiTrack(m_time_type newLength);
   
     
 //    /** 
@@ -246,6 +254,34 @@ private:
     * \param mt The MultiTrack to unclip
     **/
     static void channelAnticlip(MultiTrack* mt);
+
+    /**
+    * Determines whether this rank owns a sound in MPI per-sound mode.
+    * Ownership is a simple round-robin mapping: sound k belongs to
+    * rank (k % mpi_size). Non-owned sounds are discarded before they ever enter
+    * the local render queue.
+    * \param soundOrdinal Ordinal of the sound in the replicated CMOD stream.
+    * \return True when this rank is responsible for rendering the sound.
+    **/
+    bool ownsSound(long soundOrdinal) const;
+
+    /**
+    * Verifies all ranks built the same sound before ownership filtering.
+    * This is a debug-time safety check that catches rank divergence while CMOD
+    * is still replicated across all MPI processes.
+    * \param soundOrdinal Ordinal of the sound in the replicated CMOD stream.
+    * \param sound The sound object produced locally for this ordinal.
+    **/
+    void validateSoundConsistency(long soundOrdinal, Sound* sound) const;
+
+    /**
+    * Reduces all locally mixed score buffers to rank 0.
+    * Each rank contributes only the sounds it owns. Rank 0 reconstructs the
+    * final score, then runs score-level post-processing such as reverb and
+    * clipping management.
+    * \return The final score on rank 0, or NULL on non-root ranks.
+    **/
+    MultiTrack* reduceScoreToRoot();
     
   
    
@@ -291,6 +327,13 @@ private:
     * counter: # of sound Objects passing in so far.
     **/
     int soundObjectsCreated;
+
+    /**
+    * Ordinal of the next sound seen by this replicated CMOD run.
+    * All ranks increment this in the same order so MPI ownership stays
+    * deterministic even though CMOD still runs redundantly everywhere.
+    **/
+    long nextSoundOrdinal;
     
     /**
     * A flag to indicate that the Score object has done receiving all the 
@@ -338,5 +381,3 @@ private:
 
 //----------------------------------------------------------------------------//
 #endif //__SCORE_H
-
-

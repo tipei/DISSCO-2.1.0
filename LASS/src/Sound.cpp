@@ -30,68 +30,6 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "Sound.h"
 #include "Score.h"
 #include "Loudness.h"
-#include "MPIWrapper.h"
-
-#ifdef USE_MPI
-static MultiTrack* mpiAllreduceComposite(MultiTrack* localComposite,
-                                         int numChannels,
-                                         m_sample_count_type sampleCount,
-                                         m_rate_type samplingRate)
-{
-    const std::size_t samplesPerChannel =
-        static_cast<std::size_t>(sampleCount);
-    const std::size_t totalSamples =
-        static_cast<std::size_t>(numChannels) * samplesPerChannel;
-
-    std::vector<m_sample_type> waveBuffer(totalSamples, 0.0f);
-    std::vector<m_sample_type> ampBuffer(totalSamples, 0.0f);
-
-    for (int channel = 0; channel < numChannels; ++channel)
-    {
-        Track* track = localComposite->get(channel);
-        SoundSample& wave = track->getWave();
-        SoundSample& amp = track->getAmp();
-        const std::size_t base = static_cast<std::size_t>(channel) * samplesPerChannel;
-        for (m_sample_count_type sample = 0; sample < sampleCount; ++sample)
-        {
-            waveBuffer[base + sample] = wave[sample];
-            ampBuffer[base + sample] = amp[sample];
-        }
-    }
-
-    if (totalSamples > 0)
-    {
-        MPI_Allreduce(MPI_IN_PLACE,
-                      waveBuffer.data(),
-                      static_cast<int>(totalSamples),
-                      MPI_FLOAT,
-                      MPI_SUM,
-                      MPI_COMM_WORLD);
-        MPI_Allreduce(MPI_IN_PLACE,
-                      ampBuffer.data(),
-                      static_cast<int>(totalSamples),
-                      MPI_FLOAT,
-                      MPI_SUM,
-                      MPI_COMM_WORLD);
-    }
-
-    MultiTrack* reduced = new MultiTrack(numChannels, sampleCount, samplingRate);
-    for (int channel = 0; channel < numChannels; ++channel)
-    {
-        Track* track = reduced->get(channel);
-        SoundSample& wave = track->getWave();
-        SoundSample& amp = track->getAmp();
-        const std::size_t base = static_cast<std::size_t>(channel) * samplesPerChannel;
-        for (m_sample_count_type sample = 0; sample < sampleCount; ++sample)
-        {
-            wave[sample] = waveBuffer[base + sample];
-            amp[sample] = ampBuffer[base + sample];
-        }
-    }
-
-    return reduced;
-}
-#endif
 
 //----------------------------------------------------------------------------//
 Sound::Sound()
@@ -318,13 +256,6 @@ MultiTrack* Sound::render(
     /* ZIYUAN CHEN, July 2023: Partial::render() now returns (potentially spatialized) MultiTracks */
     MultiTrack* composite;
 
-    const bool useMpiPartialRender =
-#ifdef USE_MPI
-        dissco_mpi::isActive() && dissco_mpi::size() > 1;
-#else
-        false;
-#endif
-
     if (size() == 0)
     {
         // there are no partials
@@ -332,38 +263,11 @@ MultiTrack* Sound::render(
         composite = new MultiTrack(numChannels, sampleCount, samplingRate);
         // should we zero this memory out?
     }
-    else if (useMpiPartialRender)
-    {
-        MultiTrack* localComposite = new MultiTrack(numChannels, sampleCount, samplingRate);
-        Iterator<Partial> iter = iterator();
-        const int mpiRank = dissco_mpi::rank();
-        const int mpiSize = dissco_mpi::size();
-        int partialIndex = 0;
-
-        while (iter.hasNext())
-        {
-            Partial& partial = iter.next();
-            if ((partialIndex % mpiSize) == mpiRank)
-            {
-                MultiTrack* tempTrack =
-                    partial.render(numChannels, sampleCount, duration, samplingRate);
-                localComposite->composite(*tempTrack);
-                delete tempTrack;
-            }
-            partialIndex++;
-        }
-
-#ifdef USE_MPI
-        composite = mpiAllreduceComposite(localComposite,
-                                          numChannels,
-                                          sampleCount,
-                                          samplingRate);
-#endif
-        delete localComposite;
-    }
     else
     {
         Iterator<Partial> iter = iterator();
+        // In the current MPI design a whole sound is owned by one rank, so
+        // Sound::render() stays purely local and renders all partials here.
         composite = iter.next().render(numChannels, sampleCount, duration, samplingRate);
 
         MultiTrack* tempTrack;

@@ -34,6 +34,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "Event.h"
 #include "Piece.h"
 #include "Patter.h"
+#include "../../LASS/src/MPIWrapper.h"
 #include "../../LASS/src/ProbabilityEnvelope.h" // consider moving this into LASS.h
 #include <string>
 
@@ -67,7 +68,7 @@ Utilities::Utilities(DOMElement* root,
   // Construct Envelope library
   DOMElement* envelopeLibraryElement = root->GFEC()->GNES()->GNES();
   string envLibContent = XMLTranscode(envelopeLibraryElement);
-  string fileString = "lib.temp";
+  string fileString = "lib." + std::to_string(dissco_mpi::rank()) + ".temp";
   FILE* file  = fopen(fileString.c_str(), "w");
   if(file == nullptr)
 	cout << strerror(errno) << endl;

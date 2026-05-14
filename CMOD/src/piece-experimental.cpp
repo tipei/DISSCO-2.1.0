@@ -280,8 +280,10 @@ Piece::Piece(string _workingPath, string _projectTitle){
   cout << "Sample Size: "<< sampleSize << "\n";
   element = element->GNES();
   numThreads = stoi(XMLTC(element));
+  // In MPI per-sound mode, rank-level parallelism replaces the old local
+  // thread fan-out so ownership stays simple and deterministic during bring-up.
   if (mpiEnabled && numThreads != 1 && mpiRoot) {
-    cout << "MPI partial rendering enabled; forcing local render threads to 1." << endl;
+    cout << "MPI per-sound rendering enabled; forcing local render threads to 1." << endl;
   }
   numThreads = dissco_mpi::localRenderThreads(numThreads);
   element = element->GNES();
@@ -376,7 +378,9 @@ Piece::Piece(string _workingPath, string _projectTitle){
       if (soundSynthesis){
         cout << "Piece::Piece: " << "soundSynthesis " << endl;
         MultiTrack* renderedScore = utilities->doneCMOD();
-        if (mpiRoot) {
+        // In MPI mode only rank 0 receives the fully reduced score. Non-root
+        // ranks return NULL after contributing their local score buffers.
+        if (mpiRoot && renderedScore != NULL) {
           string soundFilename = getNextSoundFile();
 
           //Write to file.

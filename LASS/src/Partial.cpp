@@ -34,6 +34,30 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "Iterator.h"
 
 //----------------------------------------------------------------------------//
+
+namespace {
+
+/**
+ * Mixes one value into the local deterministic RNG seed used during rendering.
+ */
+inline unsigned int mixRenderSeed(unsigned int seed, unsigned int value)
+{
+    seed ^= value + 0x9e3779b9u + (seed << 6) + (seed >> 2);
+    return seed;
+}
+
+/**
+ * Quantizes floating-point render parameters before they are folded into the
+ * local deterministic RNG seed.
+ */
+inline unsigned int quantizeRenderSeed(m_value_type value)
+{
+    return static_cast<unsigned int>(std::llround(value * 1000000.0f));
+}
+
+} // namespace
+
+//----------------------------------------------------------------------------//
 Partial::Partial()
 {
     // set some default parameters:
@@ -195,8 +219,6 @@ MultiTrack* Partial::render(int numChannels,
     m_time_type amptransprob;
     m_time_type freqtransprob;
 
-    srand(time(0));
-
     //flags to tell if we are in a transient
     int amptransflag = 0;
     int freqtransflag = 0;
@@ -212,6 +234,28 @@ MultiTrack* Partial::render(int numChannels,
 
     m_value_type freqmod = 0.0, trans_freqmod = 0;
     m_value_type amplifier = 0.0, trans_amplifier = 0;
+
+    // Rendering uses a local deterministic generator so it does not alter
+    // CMOD's global rand()/srand() state while the piece is still being built.
+    // That keeps replicated CMOD generation aligned across MPI ranks.
+    unsigned int renderSeed = 2166136261u;
+    renderSeed = mixRenderSeed(renderSeed, quantizeRenderSeed(getParam(PARTIAL_NUM)));
+    renderSeed = mixRenderSeed(renderSeed,
+                               quantizeRenderSeed(getParam(FREQUENCY).valueIterator().next()));
+    renderSeed = mixRenderSeed(renderSeed, quantizeRenderSeed(getParam(RELATIVE_AMPLITUDE)));
+    renderSeed = mixRenderSeed(renderSeed,
+                               quantizeRenderSeed(getParam(WAVE_SHAPE).valueIterator().next()));
+    renderSeed = mixRenderSeed(renderSeed,
+                               quantizeRenderSeed(getParam(LOUDNESS_SCALAR).valueIterator().next()));
+    renderSeed = mixRenderSeed(renderSeed, static_cast<unsigned int>(sampleCount));
+    renderSeed = mixRenderSeed(renderSeed, static_cast<unsigned int>(samplingRate));
+    renderSeed = mixRenderSeed(renderSeed, quantizeRenderSeed(duration));
+
+    auto nextRandomUnit = [&renderSeed]() -> float {
+        renderSeed = 1664525u * renderSeed + 1013904223u;
+        return static_cast<float>(renderSeed) / 4294967296.0f;
+    };
+
     // loop over every sample:
     for (m_sample_count_type s=0; s < numSamplesToRender; s++)
     {
@@ -232,11 +276,11 @@ MultiTrack* Partial::render(int numChannels,
 	//once counter reaches 0, check for transient
 	if(amptranscheck <= 0 && s+amptrans_width < numSamplesToRender)
 	  {
-	    random = ((float)std::rand()/(float)RAND_MAX);
+	    random = nextRandomUnit();
 	    if(random <= amptransprob)
 	      {
-		trans_amplifier *= (float)std::rand()/(float)RAND_MAX;
-		if(((float)std::rand()/(float)RAND_MAX) <= 0.5)
+		trans_amplifier *= nextRandomUnit();
+		if(nextRandomUnit() <= 0.5f)
 		  trans_amplifier *= -1;
 		amplifier = trans_amplifier;
 		amptransflag = 1;
@@ -282,11 +326,11 @@ MultiTrack* Partial::render(int numChannels,
 	//if we should check, check
 	if(freqtranscheck <= 0 && s+freqtrans_width < numSamplesToRender)
 	  {
-	    random = ((float)std::rand()/(float)RAND_MAX);
+	    random = nextRandomUnit();
 	    if(random <= freqtransprob)
 	      {
-		trans_freqmod *= (float)std::rand()/(float)RAND_MAX;
-		if(((float)std::rand()/(float)RAND_MAX) <= 0.5)
+		trans_freqmod *= nextRandomUnit();
+		if(nextRandomUnit() <= 0.5f)
 		  trans_freqmod *= -1;
 		freqmod = trans_freqmod;
 		freqtransflag = 1;
@@ -342,7 +386,7 @@ MultiTrack* Partial::render(int numChannels,
         {
             case 1:
                 // random
-                sample = amplitude * 2 * ((((double) std::rand()) / ((double) RAND_MAX)) - 0.5);
+                sample = amplitude * 2.0f * (nextRandomUnit() - 0.5f);
                 break;
 
             default:
